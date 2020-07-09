@@ -15,6 +15,6 @@ from django.core.wsgi import get_wsgi_application
 
 env_path = Path(__file__).parent.absolute() / '.env'
 load_dotenv(dotenv_path=env_path)
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'task_manager.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings')
 
 application = get_wsgi_application()
