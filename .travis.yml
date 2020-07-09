@@ -8,5 +8,8 @@ before_install:
 install:
   - make install
 
+env:
+  - DJANGO_ENVIRONMENT=test
+
 script:
   - make check
