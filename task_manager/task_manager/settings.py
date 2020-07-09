@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 
 import os
 import dj_database_url
+from django.core.management.utils import get_random_secret_key  
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -40,7 +42,6 @@ ROLLBAR = {
 ALLOWED_HOSTS = [os.getenv('SITE_FQDN')]
 
 if os.getenv("DJANGO_ENVIRONMENT") == 'local':
-    SECRET_KEY = ''
     DEBUG = True
     DATABASES = {
         'default': {
@@ -50,6 +51,17 @@ if os.getenv("DJANGO_ENVIRONMENT") == 'local':
             'PASSWORD': os.getenv("LOCAL_DB_PASS"),
             'HOST': os.getenv("LOCAL_DB_HOST"),
             'PORT': os.getenv("LOCAL_DB_PORT"),
+        }
+    }
+    ROLLBAR['environment'] = 'development'
+    ALLOWED_HOSTS = []
+elif os.getenv("DJANGO_ENVIRONMENT") == 'test':
+    SECRET_KEY = get_random_secret_key()
+    DEBUG = True
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'test_db.sqlite3'),
         }
     }
     ROLLBAR['environment'] = 'development'

@@ -4,7 +4,7 @@ lint:
 	poetry run flake8 task_manager
 
 test:
-	export DJANGO_ENVIRONMENT=local
+	export DJANGO_ENVIRONMENT=test
 	poetry run python task_manager/manage.py test
 
 selfcheck:
