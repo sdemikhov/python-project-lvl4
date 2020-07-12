@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 
 import os
 import dj_database_url
-from django.core.management.utils import get_random_secret_key
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -41,6 +40,10 @@ ROLLBAR = {
 }
 ALLOWED_HOSTS = [os.getenv('SITE_FQDN')]
 
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL")
+
 if os.getenv("DJANGO_ENVIRONMENT") == 'local':
     DEBUG = True
     DATABASES = {
@@ -56,7 +59,6 @@ if os.getenv("DJANGO_ENVIRONMENT") == 'local':
     ROLLBAR['environment'] = 'development'
     ALLOWED_HOSTS = []
 elif os.getenv("DJANGO_ENVIRONMENT") == 'test':
-    SECRET_KEY = get_random_secret_key()
     DEBUG = True
     DATABASES = {
         'default': {

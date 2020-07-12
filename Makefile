@@ -14,4 +14,11 @@ check: selfcheck lint test
 local:
 	poetry run gunicorn task_manager.wsgi
 
-.PHONY: install test lint selfcheck check local
+migrate:
+	poetry run python manage.py migrate
+
+initadmin:
+	poetry run python manage.py initadmin
+prepare: migrate initadmin
+
+.PHONY: install test lint selfcheck check local migrate initadmin
