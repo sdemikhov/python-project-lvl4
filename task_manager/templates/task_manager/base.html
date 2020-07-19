@@ -12,22 +12,42 @@
 {% endblock %}
 
 {% block bootstrap4_before_content %}
-    {% block navbar %}
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav mr-auto">
-                    <li class="nav-item">
-                        <a class="navbar-brand" href="{% url 'index' %}">Task-Manager</a>
-                    </li>
-                    <li class="nav-item active">
-                        <a class="nav-link" href="{% url 'index' %}">Home</a>
-                    </li>
-                </ul>
-            </div>
-        </nav>
-    {% endblock %}
+    {% with request.resolver_match.url_name as url_name %}
+        <header class="mb-5">
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav mr-auto">
+                        <li class="nav-item">
+                            <div class="navbar-brand" >Task-Manager</div>
+                        </li>
+                        <li class="nav-item">
+                            {% url 'index' as home_url %}
+                            <a href="{% url 'index' %}" class="nav-link {% if url_name == 'index' %}active{% endif %}">Home</a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav navbar-right">
+                        {% if user.is_authenticated %}
+                            <li><a href="{% url 'profile' %}" class="nav-link {% if url_name == 'profile' %}active{% endif %}">Profile</a></li>
+                            <li><a href="{% url 'logout' %}" class="nav-link {% if url_name == 'logout' %}active{% endif %}">Log out</a></li>
+                        {% else %}
+                            <li><a href="{% url 'django_registration_register' %}" class="nav-link {% if url_name == 'django_registration_register' %}active{% endif %}">Register</a></li>
+                            <li><a href="{% url 'login' %}" class="nav-link {% if url_name == 'login' %}active{% endif %}">Log in</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </nav>
+        </header>
+    {% endwith %}
 {% endblock %}
+
 {% block bootstrap4_content %}
-    {% block content %}
-    {% endblock %}
+    <main role="main" class="d-flex flex-column align-items-center">
+        {% block content %}
+        {% endblock %}
+    </main>
+{% endblock %}
+
+{% block bootstrap4_after_content %}
+    <footer class="">
+    </footer>
 {% endblock %}

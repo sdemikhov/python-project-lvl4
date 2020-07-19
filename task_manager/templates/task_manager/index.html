@@ -7,12 +7,12 @@
 {% endblock %}
 
 {% block content %}
-    <main role="main" class="container">
-        <div class="d-flex justify-content-center flex-column align-items-center mt-5 mb-5">
-            <h1>Task-Manager</h1>
-            <p class="lead">
-                "App is under construction, coming soon!"
-            </p>
-        </div>
-    </main>
+    {% if user.is_authenticated %}
+        <h1>Hello, {{ user.username }}!</h2>
+    {% else %}
+        <h1>Task-Manager</h1>
+        <p class="lead">
+            "App is under construction, coming soon! You can register for future updates."
+        </p>
+    {% endif %}
 {% endblock %}

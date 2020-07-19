@@ -1,0 +1,18 @@
+{% extends "task_manager/base.html" %}
+
+{% load bootstrap4 %}
+
+{% block title %}
+    Task-Manager Profile
+{% endblock %}
+
+{% block content %}
+    <h2>User profile</h2>
+    <ul>
+        <li>Username: {{ user.username }}</li>
+        <li>First name: {{ user.first_name }}</li>
+        <li>Last name: {{ user.last_name }}</li>
+        <li>E-mail: {{ user.email }}</li>
+    </ul>
+    <a href="{% url 'password_change' %}">Change password</a>
+{% endblock %}

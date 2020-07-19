@@ -44,6 +44,12 @@ ADMIN_USERNAME = os.getenv("ADMIN_USERNAME")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL")
 
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+EMAIL_HOST = 'smtp.googlemail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
 if os.getenv("DJANGO_ENVIRONMENT") == 'local':
     DEBUG = True
     DATABASES = {
@@ -72,14 +78,14 @@ elif os.getenv("DJANGO_ENVIRONMENT") == 'test':
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
+    'task_manager',
     'django.contrib.auth',
+    'django.contrib.admin',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'bootstrap4',
-    'task_manager',
 ]
 
 MIDDLEWARE = [

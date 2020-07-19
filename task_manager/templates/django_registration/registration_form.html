@@ -1,0 +1,18 @@
+{% extends "task_manager/base.html" %}
+
+{% load bootstrap4 %}
+
+{% block title %}
+    Task-Manager registration
+{% endblock %}
+
+{% block content %}
+        <form method="post" class="form">
+            {% csrf_token %}
+            {% bootstrap_form_errors form %}
+            {% bootstrap_form form %}
+            {% buttons %}
+                <button type="submit" class="btn btn-dark">Submit</button>
+            {% endbuttons %}
+        </form>
+{% endblock %}

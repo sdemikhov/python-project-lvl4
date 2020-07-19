@@ -1,0 +1,13 @@
+{% extends "task_manager/base.html" %}
+
+{% load bootstrap4 %}
+
+{% block title %}
+    Task-Manager log out
+{% endblock %}
+
+{% block content %}
+    <h2>{{ title }}</h2>
+    <p>Thank you for using Task-Manager!</p>
+    <a href="{% url 'login' %}" class="nav-link">Log in again</a>
+{% endblock %}

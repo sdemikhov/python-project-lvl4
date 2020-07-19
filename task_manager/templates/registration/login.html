@@ -1,0 +1,24 @@
+{% extends "task_manager/base.html" %}
+
+{% load bootstrap4 %}
+
+{% block title %}
+    Task-Manager login
+{% endblock %}
+
+{% block content %}
+    {% if user.is_authenticated %}
+        <h2>You are already logged in!</h2>
+    {% else %}
+        <form method="post">
+            {% csrf_token %}
+            {% bootstrap_form form %}
+            {% buttons %}
+                <input type="submit" value="login">
+                <input type="hidden" name="next" value="{% url 'index' %}">
+            {% endbuttons %}
+        </form>
+        <a href="{% url 'django_registration_register' %}">New user</a>
+        <a href="{% url 'password_reset' %}">Forgot password?</a>
+    {% endif %}
+{% endblock %}
