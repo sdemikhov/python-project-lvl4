@@ -1,8 +1,26 @@
+import re
 from django_registration.forms import RegistrationForm
 from django import forms
 from django.core import validators
+from django.core.exceptions import ValidationError
+from django.contrib.auth.models import User
+
+from task_manager.models import TaskStatus, Tag, Task
 
 ONLY_LETTERS = r'^[a-zA-Zа-яА-Я]+$'
+
+MY_TASKS = 'my_tasks'
+TAGS = 'tags'
+STATUS = 'status'
+ASSIGNED_TO = 'assigned_to'
+
+FILTERS = (
+    (MY_TASKS, 'My tasks'),
+    (TAGS, 'Tags'),
+    (STATUS, 'Status'),
+    (ASSIGNED_TO, 'Assigned to'),
+)
+NOT_PERMITED_TAG_SYMBOLS = r'[^0-9a-zA-Zа-яА-Я _|]'
 
 
 class CustomRegistrationForm(RegistrationForm):
@@ -42,3 +60,102 @@ class CustomRegistrationForm(RegistrationForm):
         if commit:
             user.save()
         return user
+
+
+class FilterTypeForm(forms.Form):
+    filter_ = forms.ChoiceField(
+        label='Filter',
+        choices=FILTERS
+    )
+
+
+class FilterByMyTasksForm(forms.Form):
+    filter_type = MY_TASKS
+
+
+class FilterByTagsForm(forms.Form):
+    filter_type = TAGS
+    tags = forms.MultipleChoiceField(
+        label='Select tags',
+        widget=forms.CheckboxSelectMultiple,
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['tags'].choices = [
+            (row.pk, getattr(row, 'name'))
+            for row in Tag.objects.order_by('name').all()
+        ]
+
+
+class FilterByStatusForm(forms.Form):
+    filter_type = STATUS
+    status = forms.TypedChoiceField(
+        coerce=int,
+        label='Select status',
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['status'].choices = [
+            (row.pk, getattr(row, 'name'))
+            for row in TaskStatus.objects.all()
+        ]
+
+
+class FilterByAssignedToForm(forms.Form):
+    filter_type = ASSIGNED_TO
+    assigned_to = forms.TypedChoiceField(
+        coerce=int,
+        label='Select person',
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['assigned_to'].choices = [
+            (user.pk, user.get_full_name())
+            for user in User.objects.all()
+        ]
+
+
+class TaskForm(forms.ModelForm):
+    class Meta:
+        model = Task
+        fields = (
+            'name',
+            'description',
+            'status',
+            'creator',
+            'assigned_to',
+        )
+
+
+def validate_tags(value):
+    match = re.search(NOT_PERMITED_TAG_SYMBOLS, value)
+    if match:
+        raise ValidationError('Invalid tag chars')
+    tags = value.split('|')
+    for tag in tags:
+        if len(tag) <= 2:
+            raise ValidationError(
+                'Minimum tag length is 3 chars'
+            )
+
+
+class CreateTagsForm(forms.Form):
+    tags = forms.CharField(
+        help_text=(
+            'Pipe separation, letters, digits, hypen, underscore'
+            ' 3 char min tag length'
+        ),
+        validators=[validate_tags],
+        required=False
+    )
+
+
+class StatusForm(forms.ModelForm):
+    class Meta:
+        model = TaskStatus
+        fields = (
+            'name',
+        )

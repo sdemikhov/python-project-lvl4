@@ -1,0 +1,22 @@
+{% extends "task_manager/base.html" %}
+
+{% load bootstrap4 %}
+{% load static %}
+
+{% block title %}
+    Task-Manager Edit status {{ status.name }}
+{% endblock %}
+
+{% block content %}
+    <h2>Edit "{{ status.name }}" status:</h2>
+    <form method="post">
+        {% csrf_token %}
+        {% bootstrap_form_errors form %}
+
+        {% bootstrap_form form %}
+        {% buttons %}
+            <input type="submit" value="Save">
+        {% endbuttons %}
+    </form>
+    <a href="{% url 'statuses' %}">Back</a>
+{% endblock %}

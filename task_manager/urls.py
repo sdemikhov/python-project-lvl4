@@ -20,6 +20,19 @@ from task_manager import views
 
 urlpatterns = [
     path('', views.index, name='index'),
+    path('tasks/search', views.tasks, name='tasks'),
+    path('tasks/create', views.create_task, name='create_task'),
+    path('statuses/', views.statuses, name='statuses'),
+    path(
+        'statuses/edit/<int:status_id>',
+        views.edit_status,
+        name='edit_status'
+    ),
+    path(
+        'statuses/delete/<int:status_id>',
+        views.delete_status,
+        name='delete_status'
+    ),
     path('accounts/profile/', views.profile, name='profile'),
     path(
         'accounts/register/',

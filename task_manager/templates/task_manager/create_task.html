@@ -1,0 +1,23 @@
+{% extends "task_manager/base.html" %}
+
+{% load bootstrap4 %}
+{% load static %}
+
+{% block title %}
+    Task-Manager Create task
+{% endblock %}
+
+{% block content %}
+    <h3>Create new task:</h3>
+    <form method="post">
+        {% csrf_token %}
+        {% bootstrap_form_errors task_form %}
+        {% bootstrap_form_errors tag_form %}
+
+        {% bootstrap_form task_form %}
+        {% bootstrap_form tag_form %}
+        {% buttons %}
+            <input type="submit" value="Create">
+        {% endbuttons %}
+    </form>
+{% endblock %}

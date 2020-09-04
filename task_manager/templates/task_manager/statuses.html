@@ -1,0 +1,39 @@
+{% extends "task_manager/base.html" %}
+
+{% load bootstrap4 %}
+{% load static %}
+
+{% block title %}
+    Task-Manager Create status
+{% endblock %}
+
+{% block content %}
+    <h3>Create new status:</h3>
+    <form method="post">
+        {% csrf_token %}
+        {% bootstrap_form_errors form %}
+
+        {% bootstrap_form form %}
+        {% buttons %}
+            <input type="submit" value="Create">
+        {% endbuttons %}
+    </form>
+    <h3>Available statuses:</h3>
+    <ul>
+        {% for status in statuses %}
+            <li>
+                <div class='d-flex align-items-center'>
+                    <div class='p-1'>
+                        "{{ status.name }}"
+                    </div class='p-1'>
+                    <div>
+                        <a href="{% url 'edit_status' status_id=status.pk %}">edit</a>
+                    </div>
+                    <div class='p-1'>
+                        <a href="{% url 'delete_status' status_id=status.pk %}">delete</a>
+                    </div>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

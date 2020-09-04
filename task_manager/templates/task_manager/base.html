@@ -11,6 +11,11 @@
     {% endblock %}
 {% endblock %}
 
+{% block bootstrap4_extra_head %}
+    {% block head_extra %}
+    {% endblock %}
+{% endblock %}
+
 {% block bootstrap4_before_content %}
     {% with request.resolver_match.url_name as url_name %}
         <header class="mb-5">
@@ -24,6 +29,11 @@
                             {% url 'index' as home_url %}
                             <a href="{% url 'index' %}" class="nav-link {% if url_name == 'index' %}active{% endif %}">Home</a>
                         </li>
+                        {% if user.is_authenticated %}
+                            <li><a href="{% url 'create_task' %}" class="nav-link {% if url_name == 'create_task' %}active{% endif %}">Create task</a></li>
+                            <li><a href="{% url 'tasks' %}?filter_=my_tasks" class="nav-link {% if url_name == 'tasks' %}active{% endif %}">Find tasks</a></li>
+                            <li><a href="{% url 'statuses' %}" class="nav-link {% if url_name == 'statuses' %}active{% endif %}">Statuses</a></li>
+                        {% endif %}
                     </ul>
                     <ul class="navbar-nav navbar-right">
                         {% if user.is_authenticated %}

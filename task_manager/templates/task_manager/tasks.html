@@ -1,0 +1,72 @@
+{% extends "task_manager/base.html" %}
+
+{% load bootstrap4 %}
+{% load static %}
+
+{% block title %}
+    Task-Manager Tasks
+{% endblock %}
+
+{% block head_extra %}
+    <script src="{% static 'task_manager/searchTasks.js' %}" defer></script>
+{% endblock %}
+
+{% block content %}
+        <form>
+            {% bootstrap_form filter_type_form %}
+        </form>
+        <form id="{{ filter_by_my_tasks.filter_type }}"  hidden>
+            {% bootstrap_form_errors filter_by_my_tasks %}
+            {% bootstrap_form filter_by_my_tasks %}
+            {% buttons %}
+                <input type="hidden" name="filter_" value="{{ filter_by_my_tasks.filter_type }}">
+                <input type="submit" value="Search">
+            {% endbuttons %}
+        </form>
+        <form id="{{ filter_by_tags_form.filter_type }}"  hidden>
+            {% bootstrap_form_errors filter_by_tags_form %}
+            {% bootstrap_form filter_by_tags_form %}
+            {% buttons %}
+                <input type="hidden" name="filter_" value="{{ filter_by_tags_form.filter_type }}">
+                <input type="submit" value="Search">
+            {% endbuttons %}
+        </form>
+        <form id="{{ filter_by_status_form.filter_type }}" hidden>
+            {% bootstrap_form_errors filter_by_status_form %}
+            {% bootstrap_form filter_by_status_form %}
+            {% buttons %}
+                <input type="hidden" name="filter_" value="{{ filter_by_status_form.filter_type }}">
+                <input type="submit" value="Search">
+            {% endbuttons %}
+        </form hidden>
+        <form id="{{ filter_by_assigned_to_form.filter_type }}" hidden>
+            {% bootstrap_form_errors filter_by_assigned_to_form %}
+            {% bootstrap_form filter_by_assigned_to_form %}
+            {% buttons %}
+                <input type="hidden" name="filter_" value="{{ filter_by_assigned_to_form.filter_type }}">
+                <input type="submit" value="Search">
+            {% endbuttons %}
+        </form>
+            <div class="container">
+                <div class="row bg-secondary">
+                    <div class="col-sm">Name</div>
+                    <div class="col-sm">Description</div>
+                    <div class="col-sm">Status</div>
+                    <div class="col-sm">Creator</div>
+                    <div class="col-sm">Assigned_to</div>
+                    <div class="col-sm">Tags</div>
+                </div>
+                {% if tasks %}
+                    {% for task in tasks %}
+                    <div class="row bg-light">
+                        <div class="col-sm">{{ task.name }}</div>
+                        <div class="col-sm">{{ task.description }}</div>
+                        <div class="col-sm">{{ task.status }}</div>
+                        <div class="col-sm">{{ task.creator.get_full_name }}</div>
+                        <div class="col-sm">{{ task.assigned_to.get_full_name }}</div>
+                        <div class="col-sm">{{ task.tags.all|join:", " }}</div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+{% endblock %}
