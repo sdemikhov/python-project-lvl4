@@ -22,6 +22,11 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('tasks/search', views.tasks, name='tasks'),
     path('tasks/create', views.create_task, name='create_task'),
+    path(
+        'tasks/<int:task_id>',
+        views.task_details,
+        name='task_details'
+    ),
     path('statuses/', views.statuses, name='statuses'),
     path(
         'statuses/edit/<int:status_id>',

@@ -59,6 +59,40 @@ def create_task(request):
 
 
 @login_required
+def task_details(request, task_id):
+    task = get_object_or_404(Task, pk=task_id)
+    task_form = tm_forms.TaskForm(instance=task)
+
+    tags = Tag.objects.filter(pk=task_id)
+    formatted = '|'.join([tag.name for tag in tags])
+    tag_form = tm_forms.CreateTagsForm(initial={'tags': formatted})
+    if request.method == 'POST':
+        task_form = tm_forms.TaskForm(request.POST)
+        tag_form = tm_forms.CreateTagsForm(request.POST)
+        if task_form.is_valid() and tag_form.is_valid():
+            task = task_form.save()
+            user_inputed_tags = tag_form.cleaned_data['tags']
+            if user_inputed_tags:
+                tags = []
+                for user_inputed_tag in user_inputed_tags.split('|'):
+                    tag, _ = Tag.objects.get_or_create(
+                        name=user_inputed_tag.strip()
+                    )
+                    tags.append(tag)
+                task.tags.add(*tags)
+                task.save()
+            return redirect('tasks')
+    return render(
+        request,
+        'task_manager/task_details.html',
+        context={
+            'task_form': task_form,
+            'tag_form': tag_form,
+        }
+    )
+
+
+@login_required
 def tasks(request):
     filter_type_form = tm_forms.FilterTypeForm(request.GET or None)
     filter_by_my_tasks = tm_forms.FilterByMyTasksForm(
