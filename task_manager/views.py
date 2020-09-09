@@ -87,7 +87,11 @@ def task_details(request, task_id):
             previous_set_of_tags = set(tags)
             deleted_tags = previous_set_of_tags - new_set_of_tags
             for deleted_tag in deleted_tags:
-                deleted_tag.delete()
+                bounded_tasks = deleted_tag.task_set.all()
+                if not bounded_tasks:
+                    deleted_tag.delete()
+                else:
+                    task.tags.remove(deleted_tag)
             task.tags.add(*new_set_of_tags)
             task.save()
     return render(
@@ -96,6 +100,21 @@ def task_details(request, task_id):
         context={
             'task_form': task_form,
             'tag_form': tag_form,
+            'task': task,
+        }
+    )
+
+
+@login_required
+def delete_task(request, task_id):
+    task = get_object_or_404(Task, pk=task_id)
+    if request.method == 'POST':
+        task.delete()
+        return redirect('tasks')
+    return render(
+        request,
+        'task_manager/delete_task.html',
+        context={
             'task': task,
         }
     )

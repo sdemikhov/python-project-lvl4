@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 
 from task_manager.models import TaskStatus, Tag, Task
+from task_manager import fields as tm_fields
 
 ONLY_LETTERS = r'^[a-zA-Zа-яА-Я]+$'
 
@@ -114,7 +115,7 @@ class FilterByAssignedToForm(forms.Form):
         super().__init__(*args, **kwargs)
         self.fields['assigned_to'].choices = [
             (user.pk, user.get_full_name())
-            for user in User.objects.all()
+            for user in User.objects.filter(is_staff=False)
         ]
 
 
@@ -127,6 +128,19 @@ class TaskForm(forms.ModelForm):
             'status',
             'creator',
             'assigned_to',
+        )
+        field_classes = {
+            'creator': tm_fields.UserModelChoiceField,
+            'assigned_to': tm_fields.UserModelChoiceField
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['creator'].queryset = User.objects.filter(
+            is_staff=False
+        )
+        self.fields['assigned_to'].queryset = User.objects.filter(
+            is_staff=False
         )
 
 

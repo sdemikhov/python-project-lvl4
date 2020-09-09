@@ -27,6 +27,11 @@ urlpatterns = [
         views.task_details,
         name='task_details'
     ),
+    path(
+        'tasks/delete/<int:task_id>',
+        views.delete_task,
+        name='delete_task'
+    ),
     path('statuses/', views.statuses, name='statuses'),
     path(
         'statuses/edit/<int:status_id>',

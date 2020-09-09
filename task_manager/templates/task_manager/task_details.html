@@ -31,6 +31,7 @@
         </div>
     </div>
     <input id="show-form-button" type="button" value="edit">
+    <a href="{% url 'delete_task' task.pk %}">delete</a>
     <form id="edit-form" method="post" class="d-none">
         {% csrf_token %}
         {% bootstrap_form_errors task_form %}
