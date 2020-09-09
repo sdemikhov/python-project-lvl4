@@ -4,12 +4,34 @@
 {% load static %}
 
 {% block title %}
-    Task-Manager Task {{ task_form.name }}
+    Task-Manager Task #{{ task.pk }}
+{% endblock %}
+
+{% block head_extra %}
+    <script src="{% static 'task_manager/editTask.js' %}" defer></script>
 {% endblock %}
 
 {% block content %}
-    <h3>Edit task:</h3>
-    <form method="post">
+    <h1>Task #{{ task.pk }}</h1>
+    <h2>{{ task.name }}</h2>
+    <div class="container bg-light">
+        <div class="row">
+            <div class="col-sm">Creator: {{ task.creator }}</div>
+            <div class="col-sm">Status: {{ task.status }}</div>
+        </div>
+        <div class="row">
+            <div class="col-sm">Assigned to: {{ task.assigned_to }}</div>
+            <div class="col-sm">Tags: {{ task.tags.all|join:" " }}</div>
+        </div>
+    </div>
+    <h3>Description:</h3>
+    <div class="container bg-light">
+        <div class="row">
+            <div class="col-sm">{{ task.description }}</div>
+        </div>
+    </div>
+    <input id="show-form-button" type="button" value="edit">
+    <form id="edit-form" method="post" class="d-none">
         {% csrf_token %}
         {% bootstrap_form_errors task_form %}
         {% bootstrap_form_errors tag_form %}
@@ -17,6 +39,7 @@
         {% bootstrap_form task_form %}
         {% bootstrap_form tag_form %}
         {% buttons %}
+            <input type="hidden" name="next" value="{{ request.path }}">
             <input type="submit" value="Save">
         {% endbuttons %}
     </form>

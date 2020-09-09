@@ -15,7 +15,7 @@
         <form>
             {% bootstrap_form filter_type_form %}
         </form>
-        <form id="{{ filter_by_my_tasks.filter_type }}"  hidden>
+        <form id="{{ filter_by_my_tasks.filter_type }}" hidden>
             {% bootstrap_form_errors filter_by_my_tasks %}
             {% bootstrap_form filter_by_my_tasks %}
             {% buttons %}
@@ -23,7 +23,7 @@
                 <input type="submit" value="Search">
             {% endbuttons %}
         </form>
-        <form id="{{ filter_by_tags_form.filter_type }}"  hidden>
+        <form id="{{ filter_by_tags_form.filter_type }}" hidden>
             {% bootstrap_form_errors filter_by_tags_form %}
             {% bootstrap_form filter_by_tags_form %}
             {% buttons %}
@@ -59,8 +59,8 @@
                 {% if tasks %}
                     {% for task in tasks %}
                     <div class="row bg-light">
-                        <div class="col-sm">{{ task.name }}</div>
-                        <div class="col-sm">{{ task.description }}</div>
+                        <div class="col-sm"><a href="{% url 'task_details' task.pk %}">{{ task.name }}</a></div>
+                        <div class="col-sm">{{ task.description|truncatechars:15 }}</div>
                         <div class="col-sm">{{ task.status }}</div>
                         <div class="col-sm">{{ task.creator.get_full_name }}</div>
                         <div class="col-sm">{{ task.assigned_to.get_full_name }}</div>

@@ -1,11 +1,14 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404, reverse
 from django.http import Http404
 from django.contrib.auth.decorators import login_required
 from django_registration.backends.one_step.views import RegistrationView
+import urllib
 
 from task_manager import forms as tm_forms
 from task_manager.models import TaskStatus, Tag, Task
 
+
+FILTER = 'filter_'
 
 class CustomRegistrationView(RegistrationView):
     form_class = tm_forms.CustomRegistrationForm
@@ -39,12 +42,12 @@ def create_task(request):
             task = task_form.save()
             user_inputed_tags = tag_form.cleaned_data['tags']
             if user_inputed_tags:
-                tags = []
+                tags = set()
                 for user_inputed_tag in user_inputed_tags.split('|'):
                     tag, _ = Tag.objects.get_or_create(
                         name=user_inputed_tag.strip()
                     )
-                    tags.append(tag)
+                    tags.add(tag)
                 task.tags.add(*tags)
                 task.save()
             return redirect('tasks')
@@ -61,33 +64,39 @@ def create_task(request):
 @login_required
 def task_details(request, task_id):
     task = get_object_or_404(Task, pk=task_id)
-    task_form = tm_forms.TaskForm(instance=task)
 
-    tags = Tag.objects.filter(pk=task_id)
+    task_form = tm_forms.TaskForm(instance=task)
+    task_form.fields['creator'].disabled = True
+
+    tags = task.tags.all()
     formatted = '|'.join([tag.name for tag in tags])
     tag_form = tm_forms.CreateTagsForm(initial={'tags': formatted})
     if request.method == 'POST':
-        task_form = tm_forms.TaskForm(request.POST)
+        task_form = tm_forms.TaskForm(request.POST, instance=task)
+        task_form.fields['creator'].disabled = True
         tag_form = tm_forms.CreateTagsForm(request.POST)
         if task_form.is_valid() and tag_form.is_valid():
             task = task_form.save()
             user_inputed_tags = tag_form.cleaned_data['tags']
-            if user_inputed_tags:
-                tags = []
-                for user_inputed_tag in user_inputed_tags.split('|'):
-                    tag, _ = Tag.objects.get_or_create(
-                        name=user_inputed_tag.strip()
-                    )
-                    tags.append(tag)
-                task.tags.add(*tags)
-                task.save()
-            return redirect('tasks')
+            new_set_of_tags = set()
+            for user_inputed_tag in user_inputed_tags.split('|'):
+                tag, _ = Tag.objects.get_or_create(
+                    name=user_inputed_tag.strip()
+                )
+                new_set_of_tags.add(tag)
+            previous_set_of_tags = set(tags)
+            deleted_tags = previous_set_of_tags - new_set_of_tags
+            for deleted_tag in deleted_tags:
+                deleted_tag.delete()
+            task.tags.add(*new_set_of_tags)
+            task.save()
     return render(
         request,
         'task_manager/task_details.html',
         context={
             'task_form': task_form,
             'tag_form': tag_form,
+            'task': task,
         }
     )
 
@@ -101,7 +110,7 @@ def tasks(request):
     filter_by_status_form = tm_forms.FilterByStatusForm()
     filter_by_assigned_to_form = tm_forms.FilterByAssignedToForm()
 
-    filter_ = request.GET.get('filter_')
+    filter_ = request.GET.get(FILTER)
     tasks = []
 
     if filter_ == tm_forms.MY_TASKS:
