@@ -8,10 +8,20 @@
 {% endblock %}
 
 {% block content %}
-    <h2>Delete status "{{ status.name }}", are you sure?</h2>
-    <form method="POST"> 
-        {% csrf_token %} 
-        <input type="submit" value="Yes" />
-        <a href="{% url 'statuses' %}">No</a> 
-    </form> 
+    <div class="container">
+        <div class="row ">
+            <div class="col-sm-7">
+                <h2>Delete status "{{ status.name }}", are you sure?</h2>
+                <form method="POST" id="confirm-form"> 
+                    {% csrf_token %} 
+                </form>
+            </div>
+            <div class="col-sm-1">
+                <input form="confirm-form" class="btn btn-dark" type="submit" value="Yes" />
+            </div>
+            <div class="col-sm-1">
+                <a  class="btn btn-dark" href="{% url 'statuses' %}">No</a> 
+            </div>
+        </div>
+    </div>
 {% endblock %}

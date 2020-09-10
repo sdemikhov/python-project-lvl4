@@ -7,7 +7,9 @@
 {% endblock %}
 
 {% block content %}
-    <h2>{{ title }}</h2>
-    <p>Thank you for using Task-Manager!</p>
-    <a href="{% url 'login' %}" class="nav-link">Log in again</a>
+    <div class="container">
+        <h2>{{ title }}</h2>
+        <p>Thank you for using Task-Manager!</p>
+        <a href="{% url 'login' %}" class="nav-link">Log in again</a>
+    </div>
 {% endblock %}

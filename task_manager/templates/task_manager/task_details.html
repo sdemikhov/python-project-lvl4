@@ -12,36 +12,44 @@
 {% endblock %}
 
 {% block content %}
-    <h1>Task #{{ task.pk }}</h1>
-    <h2>{{ task.name }}</h2>
-    <div class="container bg-light">
-        <div class="row">
-            <div class="col-sm">Creator: {{ task.creator }}</div>
-            <div class="col-sm">Status: {{ task.status }}</div>
+    <div class="container">
+        <h1>Task #{{ task.pk }}</h1>
+        <h2>{{ task.name }}</h2>
+        <div class="container bg-light m-3">
+            <div class="row">
+                <div class="col-xl m-1">Creator: {{ task.creator.get_full_name }}</div>
+                <div class="col-xl m-1">Status: {{ task.status }}</div>
+            </div>
+            <div class="row">
+                <div class="col-xl m-1">Assigned to: {{ task.assigned_to.get_full_name }}</div>
+                <div class="col-xl m-1">Tags: {{ task.tags.all|join:" " }}</div>
+            </div>
         </div>
-        <div class="row">
-            <div class="col-sm">Assigned to: {{ task.assigned_to }}</div>
-            <div class="col-sm">Tags: {{ task.tags.all|join:" " }}</div>
+        <h3>Description:</h3>
+        <div class="container bg-light m-3">
+            <div class="row">
+                <div class="col-sm">{{ task.description }}</div>
+            </div>
         </div>
-    </div>
-    <h3>Description:</h3>
-    <div class="container bg-light">
-        <div class="row">
-            <div class="col-sm">{{ task.description }}</div>
-        </div>
-    </div>
-    <input id="show-form-button" type="button" value="edit">
-    <a href="{% url 'delete_task' task.pk %}">delete</a>
-    <form id="edit-form" method="post" class="d-none">
-        {% csrf_token %}
-        {% bootstrap_form_errors task_form %}
-        {% bootstrap_form_errors tag_form %}
+        <div class="container">
+            <div class="row">
+                <div class="col-7">
+                    <input class="btn btn-dark mr-2" id="show-form-button" type="button" value="edit">
+                    <a class="btn btn-dark" href="{% url 'delete_task' task.pk %}">delete</a>
+                    <form id="edit-form" method="post" class="d-none m-3">
+                        {% csrf_token %}
+                        {% bootstrap_form_errors task_form %}
+                        {% bootstrap_form_errors tag_form %}
 
-        {% bootstrap_form task_form %}
-        {% bootstrap_form tag_form %}
-        {% buttons %}
-            <input type="hidden" name="next" value="{{ request.path }}">
-            <input type="submit" value="Save">
-        {% endbuttons %}
-    </form>
+                        {% bootstrap_form task_form %}
+                        {% bootstrap_form tag_form %}
+                        {% buttons %}
+                            <input class="btn btn-dark" type="hidden" name="next" value="{{ request.path }}">
+                            <input class="btn btn-dark" type="submit" value="Save">
+                        {% endbuttons %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}

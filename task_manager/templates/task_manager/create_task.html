@@ -8,16 +8,22 @@
 {% endblock %}
 
 {% block content %}
-    <h3>Create new task:</h3>
-    <form method="post">
-        {% csrf_token %}
-        {% bootstrap_form_errors task_form %}
-        {% bootstrap_form_errors tag_form %}
+    <div class="container">
+        <div class="row">
+            <div class="col-7">
+                <h3>Create new task</h3>
+                <form method="post">
+                    {% csrf_token %}
+                    {% bootstrap_form_errors task_form %}
+                    {% bootstrap_form_errors tag_form %}
 
-        {% bootstrap_form task_form %}
-        {% bootstrap_form tag_form %}
-        {% buttons %}
-            <input type="submit" value="Create">
-        {% endbuttons %}
-    </form>
+                    {% bootstrap_form task_form %}
+                    {% bootstrap_form tag_form %}
+                    {% buttons %}
+                        <input class="btn btn-dark" type="submit" value="Create">
+                    {% endbuttons %}
+                </form>
+            </div>
+        </div>
+    </div>
 {% endblock %}

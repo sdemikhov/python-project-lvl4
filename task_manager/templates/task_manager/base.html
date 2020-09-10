@@ -31,7 +31,7 @@
                         </li>
                         {% if user.is_authenticated %}
                             <li><a href="{% url 'create_task' %}" class="nav-link {% if url_name == 'create_task' %}active{% endif %}">Create task</a></li>
-                            <li><a href="{% url 'tasks' %}?filter_=my_tasks" class="nav-link {% if url_name == 'tasks' %}active{% endif %}">Find tasks</a></li>
+                            <li><a href="{% url 'tasks' %}" class="nav-link {% if url_name == 'tasks' %}active{% endif %}">Find tasks</a></li>
                             <li><a href="{% url 'statuses' %}" class="nav-link {% if url_name == 'statuses' %}active{% endif %}">Statuses</a></li>
                         {% endif %}
                     </ul>
@@ -51,7 +51,17 @@
 {% endblock %}
 
 {% block bootstrap4_content %}
-    <main role="main" class="d-flex flex-column align-items-center">
+    <main role="main" class="">
+        {% if messages %}
+            <ul class="list-group">
+                {% for message in messages %}
+                <li{% if message.tags %} class="list-group-item list-group-item-warning"{% endif %}>
+                    {% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}Important: {% endif %}
+                    {{ message }}
+                </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
         {% block content %}
         {% endblock %}
     </main>

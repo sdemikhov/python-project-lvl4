@@ -7,12 +7,18 @@
 {% endblock %}
 
 {% block content %}
-        <form method="post" class="form">
-            {% csrf_token %}
-            {% bootstrap_form_errors form %}
-            {% bootstrap_form form %}
-            {% buttons %}
-                <button type="submit" class="btn btn-dark">Submit</button>
-            {% endbuttons %}
-        </form>
+    <div class="container">
+        <div class="row">
+            <div class="col-5">
+                <form method="post" class="form">
+                    {% csrf_token %}
+                    {% bootstrap_form_errors form %}
+                    {% bootstrap_form form %}
+                    {% buttons %}
+                        <button type="submit" class="btn btn-dark">Submit</button>
+                    {% endbuttons %}
+                </form>
+            </div>
+        </div>
+    </div>
 {% endblock %}

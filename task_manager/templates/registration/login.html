@@ -10,15 +10,21 @@
     {% if user.is_authenticated %}
         <h2>You are already logged in!</h2>
     {% else %}
-        <form method="post">
-            {% csrf_token %}
-            {% bootstrap_form form %}
-            {% buttons %}
-                <input type="submit" value="login">
-                <input type="hidden" name="next" value="{% url 'index' %}">
-            {% endbuttons %}
-        </form>
-        <a href="{% url 'django_registration_register' %}">New user</a>
-        <a href="{% url 'password_reset' %}">Forgot password?</a>
+    <div class="container">
+        <div class="row">
+            <div class="col-3">
+                <form method="post">
+                    {% csrf_token %}
+                    {% bootstrap_form form %}
+                    {% buttons %}
+                        <input class="btn btn-dark" type="submit" value="login">
+                        <input type="hidden" name="next" value="{% url 'index' %}">
+                    {% endbuttons %}
+                </form>
+                <a href="{% url 'django_registration_register' %}">New user</a>
+                <a href="{% url 'password_reset' %}">Forgot password?</a>
+            </div>
+        </div>
+    </div>
     {% endif %}
 {% endblock %}

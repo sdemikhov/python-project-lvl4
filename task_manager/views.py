@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404, reverse
 from django.http import Http404
 from django.contrib.auth.decorators import login_required
 from django_registration.backends.one_step.views import RegistrationView
+from django.contrib import messages
 import urllib
 
 from task_manager import forms as tm_forms
@@ -109,8 +110,16 @@ def task_details(request, task_id):
 def delete_task(request, task_id):
     task = get_object_or_404(Task, pk=task_id)
     if request.method == 'POST':
-        task.delete()
-        return redirect('tasks')
+        if task.creator.pk == request.user.pk:
+            task.delete()
+            return redirect('tasks')
+        else:
+            messages.add_message(
+                request, 
+                messages.WARNING,
+                'Only creator can delete this task.'
+            )
+            return redirect('task_details', task_id)
     return render(
         request,
         'task_manager/delete_task.html',
@@ -163,8 +172,7 @@ def tasks(request):
                     tm_forms.ASSIGNED_TO
                 ]
             )
-    else:
-        raise Http404("Wrong filter selected")
+
     return render(
         request,
         'task_manager/tasks.html',

@@ -7,12 +7,18 @@
 {% endblock %}
 
 {% block content %}
-    <h2>User profile</h2>
-    <ul>
-        <li>Username: {{ user.username }}</li>
-        <li>First name: {{ user.first_name }}</li>
-        <li>Last name: {{ user.last_name }}</li>
-        <li>E-mail: {{ user.email }}</li>
-    </ul>
-    <a href="{% url 'password_change' %}">Change password</a>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-3">
+                <h3>Profile</h3>
+                <ul class="list-group">
+                    <li class="list-group-item">Username: {{ user.username }}</li>
+                    <li class="list-group-item">First name: {{ user.first_name }}</li>
+                    <li class="list-group-item">Last name: {{ user.last_name }}</li>
+                    <li class="list-group-item">E-mail: {{ user.email }}</li>
+                </ul>
+                <a class="btn btn-dark mt-2" href="{% url 'password_change' %}">Change password</a>
+            </div>
+        </div>
+    </div>
 {% endblock %}

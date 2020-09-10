@@ -8,10 +8,20 @@
 {% endblock %}
 
 {% block content %}
-    <h2>Delete task#{{ task.pk }} - "{{ task.name }}", are you sure?</h2>
-    <form method="POST"> 
-        {% csrf_token %} 
-        <input type="submit" value="Yes" />
-        <a href="{% url 'tasks' %}">No</a> 
-    </form> 
+    <div class="container">
+        <div class="row ">
+            <div class="col-8">
+                <h2>Delete task#{{ task.pk }} - "{{ task.name }}", are you sure?</h2>
+                <form method="POST" id="confirm-form">
+                    {% csrf_token %} 
+                </form>
+            </div>
+            <div class="col-1">
+                <input class="btn btn-dark" form="confirm-form" type="submit" value="Yes" />
+            </div>
+            <div class="col-1">
+                <a class="btn btn-dark" href="{% url 'task_details' task.pk %}">No</a> 
+            </div>
+        </div>
+    </div>
 {% endblock %}

@@ -8,32 +8,42 @@
 {% endblock %}
 
 {% block content %}
-    <h3>Create new status:</h3>
-    <form method="post">
-        {% csrf_token %}
-        {% bootstrap_form_errors form %}
+    <div class="container">
+        <div class="row">
+            <div class="col-4">
+                <h3>Create new status:</h3>
+                <form method="post">
+                    {% csrf_token %}
+                    {% bootstrap_form_errors form %}
 
-        {% bootstrap_form form %}
-        {% buttons %}
-            <input type="submit" value="Create">
-        {% endbuttons %}
-    </form>
-    <h3>Available statuses:</h3>
-    <ul>
-        {% for status in statuses %}
-            <li>
-                <div class='d-flex align-items-center'>
-                    <div class='p-1'>
-                        "{{ status.name }}"
-                    </div class='p-1'>
-                    <div>
-                        <a href="{% url 'edit_status' status_id=status.pk %}">edit</a>
-                    </div>
-                    <div class='p-1'>
-                        <a href="{% url 'delete_status' status_id=status.pk %}">delete</a>
-                    </div>
-                </div>
-            </li>
-        {% endfor %}
-    </ul>
+                    {% bootstrap_form form %}
+                    {% buttons %}
+                        <input class="btn btn-dark" type="submit" value="Create">
+                    {% endbuttons %}
+                </form>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-4">
+                <h3>Available statuses:</h3>
+                <ul class="list-group">
+                    {% for status in statuses %}
+                        <li class="list-group-item">
+                            <div class='d-flex align-items-center'>
+                                <div class='p-1'>
+                                    "{{ status.name }}"
+                                </div class='p-1'>
+                                <div>
+                                    <a href="{% url 'edit_status' status_id=status.pk %}">edit</a>
+                                </div>
+                                <div class='p-1'>
+                                    <a href="{% url 'delete_status' status_id=status.pk %}">delete</a>
+                                </div>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
 {% endblock %}

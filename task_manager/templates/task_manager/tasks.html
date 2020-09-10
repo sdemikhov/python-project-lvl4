@@ -12,61 +12,79 @@
 {% endblock %}
 
 {% block content %}
-        <form>
-            {% bootstrap_form filter_type_form %}
-        </form>
-        <form id="{{ filter_by_my_tasks.filter_type }}" hidden>
-            {% bootstrap_form_errors filter_by_my_tasks %}
-            {% bootstrap_form filter_by_my_tasks %}
-            {% buttons %}
-                <input type="hidden" name="filter_" value="{{ filter_by_my_tasks.filter_type }}">
-                <input type="submit" value="Search">
-            {% endbuttons %}
-        </form>
-        <form id="{{ filter_by_tags_form.filter_type }}" hidden>
-            {% bootstrap_form_errors filter_by_tags_form %}
-            {% bootstrap_form filter_by_tags_form %}
-            {% buttons %}
-                <input type="hidden" name="filter_" value="{{ filter_by_tags_form.filter_type }}">
-                <input type="submit" value="Search">
-            {% endbuttons %}
-        </form>
-        <form id="{{ filter_by_status_form.filter_type }}" hidden>
-            {% bootstrap_form_errors filter_by_status_form %}
-            {% bootstrap_form filter_by_status_form %}
-            {% buttons %}
-                <input type="hidden" name="filter_" value="{{ filter_by_status_form.filter_type }}">
-                <input type="submit" value="Search">
-            {% endbuttons %}
-        </form hidden>
-        <form id="{{ filter_by_assigned_to_form.filter_type }}" hidden>
-            {% bootstrap_form_errors filter_by_assigned_to_form %}
-            {% bootstrap_form filter_by_assigned_to_form %}
-            {% buttons %}
-                <input type="hidden" name="filter_" value="{{ filter_by_assigned_to_form.filter_type }}">
-                <input type="submit" value="Search">
-            {% endbuttons %}
-        </form>
-            <div class="container">
-                <div class="row bg-secondary">
-                    <div class="col-sm">Name</div>
-                    <div class="col-sm">Description</div>
-                    <div class="col-sm">Status</div>
-                    <div class="col-sm">Creator</div>
-                    <div class="col-sm">Assigned_to</div>
-                    <div class="col-sm">Tags</div>
-                </div>
-                {% if tasks %}
-                    {% for task in tasks %}
-                    <div class="row bg-light">
-                        <div class="col-sm"><a href="{% url 'task_details' task.pk %}">{{ task.name }}</a></div>
-                        <div class="col-sm">{{ task.description|truncatechars:15 }}</div>
-                        <div class="col-sm">{{ task.status }}</div>
-                        <div class="col-sm">{{ task.creator.get_full_name }}</div>
-                        <div class="col-sm">{{ task.assigned_to.get_full_name }}</div>
-                        <div class="col-sm">{{ task.tags.all|join:", " }}</div>
-                    </div>
-                    {% endfor %}
-                {% endif %}
+    <div class="container">
+        <div class="row">
+            <div class="col-4">
+                <form>
+                    {% bootstrap_form filter_type_form %}
+                </form>
             </div>
+        </div>
+        <div class="row">
+            <div class="col-6">
+                <form id="{{ filter_by_my_tasks.filter_type }}" hidden>
+                    {% bootstrap_form_errors filter_by_my_tasks %}
+                    {% bootstrap_form filter_by_my_tasks %}
+                    {% buttons %}
+                        <input type="hidden" name="filter_" value="{{ filter_by_my_tasks.filter_type }}">
+                        <input class="btn btn-dark" type="submit" value="Search">
+                    {% endbuttons %}
+                </form>
+                <form id="{{ filter_by_tags_form.filter_type }}" hidden>
+                    {% bootstrap_form_errors filter_by_tags_form %}
+                    {% bootstrap_form filter_by_tags_form %}
+                    {% buttons %}
+                        <input type="hidden" name="filter_" value="{{ filter_by_tags_form.filter_type }}">
+                        <input class="btn btn-dark" type="submit" value="Search">
+                    {% endbuttons %}
+                </form>
+                <form id="{{ filter_by_status_form.filter_type }}" hidden>
+                    {% bootstrap_form_errors filter_by_status_form %}
+                    {% bootstrap_form filter_by_status_form %}
+                    {% buttons %}
+                        <input type="hidden" name="filter_" value="{{ filter_by_status_form.filter_type }}">
+                        <input class="btn btn-dark" type="submit" value="Search">
+                    {% endbuttons %}
+                </form hidden>
+                <form id="{{ filter_by_assigned_to_form.filter_type }}" hidden>
+                    {% bootstrap_form_errors filter_by_assigned_to_form %}
+                    {% bootstrap_form filter_by_assigned_to_form %}
+                    {% buttons %}
+                        <input type="hidden" name="filter_" value="{{ filter_by_assigned_to_form.filter_type }}">
+                        <input class="btn btn-dark" type="submit" value="Search">
+                    {% endbuttons %}
+                </form>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <table class="table table-striped">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th class="w-20">Name</th>
+                            <th class="w-30">Description</th>
+                            <th class="w-10">Status</th>
+                            <th class="w-10">Creator</th>
+                            <th class="w-10">Assigned_to</th>
+                            <th class="w-20">Tags</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if tasks %}
+                            {% for task in tasks %}
+                            <tr>
+                                <td class="w-20 text-break"><a href="{% url 'task_details' task.pk %}">{{ task.name|truncatechars:100  }}</a></td>
+                                <td class="w-30 text-break">{{ task.description|truncatechars:100 }}</td>
+                                <td class="w-10 text-break">{{ task.status }}</td>
+                                <td class="w-10 text-break">{{ task.creator.get_full_name }}</td>
+                                <td class="w-10 text-break">{{ task.assigned_to.get_full_name }}</td>
+                                <td class="w-20 text-break">{{ task.tags.all|join:", " }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 {% endblock %}
