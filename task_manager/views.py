@@ -229,8 +229,16 @@ def edit_status(request, status_id):
 def delete_status(request, status_id):
     status = get_object_or_404(TaskStatus, pk=status_id)
     if request.method == 'POST':
-        status.delete()
-        return redirect('statuses')
+        bounded_tasks = status.bounded_tasks.all()
+        if not bounded_tasks:
+            status.delete()
+        else:
+            messages.add_message(
+                request, 
+                messages.WARNING,
+                "This status has bounded tasks, you can not delete it."
+            )
+            return redirect('statuses')
     return render(
         request,
         'task_manager/delete_status.html',

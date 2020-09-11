@@ -24,21 +24,15 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-4">
+            <div class="col-3">
                 <h3>Available statuses:</h3>
                 <ul class="list-group">
                     {% for status in statuses %}
                         <li class="list-group-item">
-                            <div class='d-flex align-items-center'>
-                                <div class='p-1'>
-                                    "{{ status.name }}"
-                                </div class='p-1'>
-                                <div>
-                                    <a href="{% url 'edit_status' status_id=status.pk %}">edit</a>
-                                </div>
-                                <div class='p-1'>
-                                    <a href="{% url 'delete_status' status_id=status.pk %}">delete</a>
-                                </div>
+                            <p><strong>{{ status.name }}</strong></p>
+                            <div>
+                                <a class="btn btn-dark" href="{% url 'edit_status' status_id=status.pk %}">edit</a>
+                                <a class="btn btn-dark" href="{% url 'delete_status' status_id=status.pk %}">delete</a>
                             </div>
                         </li>
                     {% endfor %}

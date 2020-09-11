@@ -44,17 +44,18 @@ class Task(models.Model):
     description = models.TextField(blank=True)
     status = models.ForeignKey(
         TaskStatus,
+        related_name='bounded_tasks',
         on_delete=models.CASCADE,
         default=DEFAULT_TASK_STATUS_ID
     )
     creator = models.ForeignKey(
         User,
-        related_name='creator',
+        related_name='created_tasks',
         on_delete=models.CASCADE,
     )
     assigned_to = models.ForeignKey(
         User,
-        related_name='assigned_to',
+        related_name='assigned_tasks',
         on_delete=models.CASCADE,
     )
     tags = models.ManyToManyField(Tag, blank=True)
