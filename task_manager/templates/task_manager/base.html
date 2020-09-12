@@ -1,6 +1,7 @@
 {% extends 'bootstrap4/bootstrap4.html' %}
 
 {% load bootstrap4 %}
+{% load static %}
 
 {% bootstrap_css %}
 {% bootstrap_javascript jquery='full' %}
@@ -12,6 +13,10 @@
 {% endblock %}
 
 {% block bootstrap4_extra_head %}
+    <link rel="shortcut icon" type="image/png" href="{% static 'task_manager/favicon.ico' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static  'task_manager/apple-touch-icon.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'task_manager/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'task_manager/favicon-16x16.png' %}">
     {% block head_extra %}
     {% endblock %}
 {% endblock %}

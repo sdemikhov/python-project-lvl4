@@ -1,5 +1,4 @@
 from django.forms import ModelChoiceField
-from django.contrib.auth.models import User
 
 
 class UserModelChoiceField(ModelChoiceField):

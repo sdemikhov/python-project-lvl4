@@ -134,6 +134,10 @@ class TaskForm(forms.ModelForm):
             'assigned_to': tm_fields.UserModelChoiceField
         }
 
+        labels = {
+            'assigned_to': 'Assigned to'
+        }
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['creator'].queryset = User.objects.filter(
@@ -154,13 +158,14 @@ def validate_tags(value):
             raise ValidationError(
                 'Minimum tag length is 3 chars'
             )
+    if len(tags) > 10:
+        raise ValidationError('You can select 10 tags maximum')
 
 
 class CreateTagsForm(forms.Form):
     tags = forms.CharField(
         help_text=(
-            'Pipe separation, letters, digits, hypen, underscore'
-            ' 3 char min tag length'
+            'Separate each tag by "|"'
         ),
         validators=[validate_tags],
         required=False

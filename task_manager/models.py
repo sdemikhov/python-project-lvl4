@@ -11,7 +11,7 @@ DEFAULT_TASK_STATUSES = [
 
 
 class TaskStatus(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
 
     @classmethod
     def init_statuses(cls):

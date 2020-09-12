@@ -5,3 +5,9 @@ const makeEditFormVisible = () => {
 
 const showFormButton = document.getElementById('show-form-button');
 showFormButton.addEventListener('click', makeEditFormVisible);
+
+const formErrors = document.querySelector('[role=alert]');
+if (formErrors) {
+    const event = new Event("click");
+    showFormButton.dispatchEvent(event)
+};

@@ -1,9 +1,7 @@
-from django.shortcuts import render, redirect, get_object_or_404, reverse
-from django.http import Http404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django_registration.backends.one_step.views import RegistrationView
 from django.contrib import messages
-import urllib
 
 from task_manager import forms as tm_forms
 from task_manager.models import TaskStatus, Tag, Task
@@ -11,12 +9,26 @@ from task_manager.models import TaskStatus, Tag, Task
 
 FILTER = 'filter_'
 
+
 class CustomRegistrationView(RegistrationView):
     form_class = tm_forms.CustomRegistrationForm
 
 
 def index(request):
-    return render(request, 'task_manager/index.html')
+    created_tasks_count = len(
+        Task.objects.filter(creator=request.user.pk)
+    )
+    assigned_tasks_count = len(
+        Task.objects.filter(assigned_to=request.user.pk)
+    )
+    return render(
+        request,
+        'task_manager/index.html',
+        {
+            'created_tasks_count': created_tasks_count,
+            'assigned_tasks_count': assigned_tasks_count,
+        }
+    )
 
 
 @login_required
@@ -77,22 +89,23 @@ def task_details(request, task_id):
         task_form.fields['creator'].disabled = True
         tag_form = tm_forms.CreateTagsForm(request.POST)
         if task_form.is_valid() and tag_form.is_valid():
-            task = task_form.save()
+            task = task_form.save(commit=False)
             user_inputed_tags = tag_form.cleaned_data['tags']
             new_set_of_tags = set()
             for user_inputed_tag in user_inputed_tags.split('|'):
-                tag, _ = Tag.objects.get_or_create(
-                    name=user_inputed_tag.strip()
-                )
-                new_set_of_tags.add(tag)
+                new_tag_name = user_inputed_tag.strip()
+                if new_tag_name:
+                    tag, _ = Tag.objects.get_or_create(
+                        name=new_tag_name
+                    )
+                    new_set_of_tags.add(tag)
             previous_set_of_tags = set(tags)
             deleted_tags = previous_set_of_tags - new_set_of_tags
             for deleted_tag in deleted_tags:
+                task.tags.remove(deleted_tag)
                 bounded_tasks = deleted_tag.task_set.all()
                 if not bounded_tasks:
                     deleted_tag.delete()
-                else:
-                    task.tags.remove(deleted_tag)
             task.tags.add(*new_set_of_tags)
             task.save()
     return render(
@@ -115,7 +128,7 @@ def delete_task(request, task_id):
             return redirect('tasks')
         else:
             messages.add_message(
-                request, 
+                request,
                 messages.WARNING,
                 'Only creator can delete this task.'
             )
@@ -234,7 +247,7 @@ def delete_status(request, status_id):
             status.delete()
         else:
             messages.add_message(
-                request, 
+                request,
                 messages.WARNING,
                 "This status has bounded tasks, you can not delete it."
             )
