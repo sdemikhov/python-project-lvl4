@@ -19,6 +19,9 @@ migrate:
 
 initadmin:
 	poetry run python manage.py initadmin
-prepare: migrate initadmin
+initstatuses:
+	poetry run python manage.py initstatuses
+
+prepare: migrate initadmin initstatuses
 
 .PHONY: install test lint selfcheck check local migrate initadmin
