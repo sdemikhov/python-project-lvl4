@@ -7,3 +7,6 @@ dist/
 *.sql
 .env
 staticfiles/
+.coverage
+coverage.*
+htmlcov/

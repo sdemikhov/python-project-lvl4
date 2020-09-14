@@ -51,7 +51,7 @@ class CustomRegistrationForm(RegistrationForm):
     )
 
     class Meta(RegistrationForm.Meta):
-        fields = RegistrationForm.Meta.fields + ['first_name', 'last_name']
+        fields = ['first_name', 'last_name'] + RegistrationForm.Meta.fields
 
     def save(self, commit=True):
         user = super().save(commit=False)

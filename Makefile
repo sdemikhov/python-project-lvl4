@@ -4,7 +4,8 @@ lint:
 	poetry run flake8 task_manager
 
 test:
-	poetry run python manage.py test
+	poetry run coverage run manage.py test
+	poetry run coverage xml
 
 selfcheck:
 	poetry check
