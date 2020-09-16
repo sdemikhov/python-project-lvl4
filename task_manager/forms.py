@@ -134,10 +134,6 @@ class TaskForm(forms.ModelForm):
             'assigned_to': tm_fields.UserModelChoiceField
         }
 
-        labels = {
-            'assigned_to': 'Assigned to'
-        }
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['creator'].queryset = User.objects.filter(

@@ -5,6 +5,7 @@ from django import forms
 
 from task_manager import models as tm_models
 from task_manager import forms as tm_forms
+from task_manager import fields as tm_fields
 
 
 class TaskStatusModelTest(TestCase):
@@ -366,4 +367,49 @@ class TaskFormTest(TestCase):
                 'creator',
                 'assigned_to',
             )
+        )
+
+    def test_form_field_classes(self):
+        form = tm_forms.TaskForm()
+        self.assertTrue(
+            isinstance(
+                form.fields['creator'],
+                tm_fields.UserModelChoiceField
+            )
+        )
+        self.assertEquals(
+            form.fields['creator'].label_from_instance(self.ivanov),
+            self.ivanov.get_full_name()
+        )
+        self.assertTrue(
+            isinstance(
+                form.fields['assigned_to'],
+                tm_fields.UserModelChoiceField
+            )
+        )
+        self.assertEquals(
+            form.fields['assigned_to'].label_from_instance(self.ivanov),
+            self.ivanov.get_full_name()
+        )
+
+    def test_field_creator_queryset(self):
+        form = tm_forms.TaskForm()
+        self.assertEquals(
+            len(form.fields['creator'].queryset),
+            2
+        )
+        self.assertEquals(
+            set(form.fields['creator'].queryset),
+            {self.ivanov, self.petrov}
+        )
+
+    def test_field_assigned_to_queryset(self):
+        form = tm_forms.TaskForm()
+        self.assertEquals(
+            len(form.fields['assigned_to'].queryset),
+            2
+        )
+        self.assertEquals(
+            set(form.fields['assigned_to'].queryset),
+            {self.ivanov, self.petrov}
         )
