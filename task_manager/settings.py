@@ -63,7 +63,7 @@ if os.getenv("DJANGO_ENVIRONMENT") == 'local':
         }
     }
     ROLLBAR['environment'] = 'development'
-    ALLOWED_HOSTS = []
+    ALLOWED_HOSTS = ['testserver']
 elif os.getenv("DJANGO_ENVIRONMENT") == 'test':
     DEBUG = True
     DATABASES = {

@@ -1,4 +1,3 @@
-import re
 from django_registration.forms import RegistrationForm
 from django import forms
 from django.core import validators
@@ -145,9 +144,6 @@ class TaskForm(forms.ModelForm):
 
 
 def validate_tags(value):
-    match = re.search(NOT_PERMITED_TAG_SYMBOLS, value)
-    if match:
-        raise ValidationError('Invalid tag chars')
     tags = value.split('|')
     for tag in tags:
         if len(tag) <= 2:
@@ -163,7 +159,10 @@ class CreateTagsForm(forms.Form):
         help_text=(
             'Separate each tag by "|"'
         ),
-        validators=[validate_tags],
+        validators=[
+            validators.RegexValidator(NOT_PERMITED_TAG_SYMBOLS),
+            validate_tags
+        ],
         required=False
     )
 

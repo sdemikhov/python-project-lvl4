@@ -60,5 +60,8 @@ class Task(models.Model):
     )
     tags = models.ManyToManyField(Tag, blank=True)
 
+    def __str__(self):
+        return self.name
+
     def __repr__(self):
         return '<Task {}>'.format(self.name)

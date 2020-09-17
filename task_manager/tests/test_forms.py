@@ -1,108 +1,12 @@
 from django.test import TestCase
-from django.db.utils import IntegrityError
-from django.contrib.auth.models import User
 from django import forms
+from django.core import validators
+from django.core.exceptions import ValidationError
+from django.contrib.auth.models import User
 
 from task_manager import models as tm_models
 from task_manager import forms as tm_forms
 from task_manager import fields as tm_fields
-
-
-class TaskStatusModelTest(TestCase):
-    @classmethod
-    def setUpTestData(cls):
-        tm_models.TaskStatus.objects.create(name='task_status_model_test')
-
-    def test_field_name_label(self):
-        status = tm_models.TaskStatus.objects.get(
-            name='task_status_model_test'
-        )
-        field_label = status._meta.get_field('name').verbose_name
-        self.assertEquals(field_label, 'name')
-
-    def test_field_name_max_length(self):
-        status = tm_models.TaskStatus.objects.get(
-            name='task_status_model_test'
-        )
-        max_length = status._meta.get_field('name').max_length
-        self.assertEquals(max_length, 100)
-
-    def test_field_name_unique_constraint(self):
-        tm_models.TaskStatus.objects.create(name='unique')
-        with self.assertRaises(IntegrityError):
-            tm_models.TaskStatus.objects.create(name='unique')
-
-    def test_init_statuses(self):
-        tm_models.TaskStatus.init_statuses()
-
-        for default_status in tm_models.DEFAULT_TASK_STATUSES:
-            status = tm_models.TaskStatus.objects.get(
-                name=default_status
-            )
-            self.assertEquals(status.name, default_status)
-
-
-class TagModelTest(TestCase):
-
-    @classmethod
-    def setUpTestData(cls):
-        tm_models.Tag.objects.create(name='tag_model_test')
-
-    def test_field_name_label(self):
-        tag = tm_models.Tag.objects.get(name='tag_model_test')
-        field_label = tag._meta.get_field('name').verbose_name
-        self.assertEquals(field_label, 'name')
-
-    def test_field_name_max_length(self):
-        tag = tm_models.Tag.objects.get(name='tag_model_test')
-        max_length = tag._meta.get_field('name').max_length
-        self.assertEquals(max_length, 100)
-
-    def test_field_name_unique_constraint(self):
-        tm_models.Tag.objects.create(name='unique')
-        with self.assertRaises(IntegrityError):
-            tm_models.Tag.objects.create(name='unique')
-
-
-class TaskModelTest(TestCase):
-
-    @classmethod
-    def setUpTestData(cls):
-        status = tm_models.TaskStatus.objects.create(name='test_status')
-        tag1 = tm_models.Tag.objects.create(name='task')
-        tag2 = tm_models.Tag.objects.create(name='manager')
-        user_ivanov = User.objects.create(username='iivanov')
-        user_petrov = User.objects.create(username='ppetrov')
-
-        task = tm_models.Task.objects.create(
-            name='task_model_test',
-            status=status,
-            creator=user_ivanov,
-            assigned_to=user_petrov,
-        )
-        task.tags.set([tag1, tag2])
-
-    def test_field_name_max_length(self):
-        task = tm_models.Task.objects.get(name='task_model_test')
-        max_length = task._meta.get_field('name').max_length
-        self.assertEquals(max_length, 200)
-
-    def test_field_status(self):
-        task = tm_models.Task.objects.get(name='task_model_test')
-        self.assertEquals(task.status.name, 'test_status')
-
-    def test_field_creator(self):
-        task = tm_models.Task.objects.get(name='task_model_test')
-        self.assertEquals(task.creator.username, 'iivanov')
-
-    def test_field_assigned_to(self):
-        task = tm_models.Task.objects.get(name='task_model_test')
-        self.assertEquals(task.assigned_to.username, 'ppetrov')
-
-    def test_field_tags(self):
-        task = tm_models.Task.objects.get(name='task_model_test')
-        for tag in task.tags.all():
-            self.assertTrue(tag.name in ['task', 'manager'])
 
 
 class CustomRegistrationFormTest(TestCase):
@@ -369,6 +273,13 @@ class TaskFormTest(TestCase):
             )
         )
 
+    def test_form_model(self):
+        form = tm_forms.TaskForm()
+        self.assertEquals(
+            form.Meta().model,
+            tm_models.Task
+        )
+
     def test_form_field_classes(self):
         form = tm_forms.TaskForm()
         self.assertTrue(
@@ -412,4 +323,81 @@ class TaskFormTest(TestCase):
         self.assertEquals(
             set(form.fields['assigned_to'].queryset),
             {self.ivanov, self.petrov}
+        )
+
+
+class ValidateTagsTest(TestCase):
+    def test_min_tag_length(self):
+        with self.assertRaises(ValidationError):
+            tm_forms.validate_tags('t|tag|name')
+
+        with self.assertRaises(ValidationError):
+            tm_forms.validate_tags('test|ta|name')
+
+        with self.assertRaises(ValidationError):
+            tm_forms.validate_tags('test|tag|na')
+        self.assertEquals(
+            tm_forms.validate_tags('test|tag|name'),
+            None
+        )
+
+    def test_max_tags_count(self):
+        with self.assertRaises(ValidationError):
+            tm_forms.validate_tags(
+                'one|two|three|four|five|six|seven|eight|nine|ten|eleven'
+            )
+        self.assertEquals(
+            tm_forms.validate_tags(
+                'one|two|three|four|five|six|seven|eight|nine|ten'
+            ),
+            None
+        )
+
+
+class CreateTagsFormTest(TestCase):
+    def test_field_tags_type(self):
+        form = tm_forms.CreateTagsForm()
+        self.assertTrue(form.fields['tags'], forms.CharField)
+
+    def test_field_tags_help_text(self):
+        form = tm_forms.CreateTagsForm()
+        self.assertEquals(
+            form.fields['tags'].help_text,
+            'Separate each tag by "|"'
+        )
+
+    def test_field_tags_required(self):
+        form = tm_forms.CreateTagsForm()
+        self.assertFalse(form.fields['tags'].required)
+
+    def test_field_tags_validators_regex(self):
+        form = tm_forms.CreateTagsForm()
+        self.assertTrue(
+            isinstance(
+                form.fields['tags'].validators[0],
+                validators.RegexValidator
+            )
+        )
+
+    def test_field_tags_validators_validate_tags(self):
+        form = tm_forms.CreateTagsForm()
+        self.assertEquals(
+                form.fields['tags'].validators[1],
+                tm_forms.validate_tags
+        )
+
+
+class StatusFormTest(TestCase):
+    def test_form_fields(self):
+        form = tm_forms.StatusForm()
+        self.assertEquals(
+            form.Meta().fields,
+            ('name',)
+        )
+
+    def test_form_model(self):
+        form = tm_forms.StatusForm()
+        self.assertEquals(
+            form.Meta().model,
+            tm_models.TaskStatus
         )
