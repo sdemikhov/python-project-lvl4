@@ -372,11 +372,15 @@ class CreateTagsFormTest(TestCase):
 
     def test_field_tags_validators_regex(self):
         form = tm_forms.CreateTagsForm()
+        regex_validator = form.fields['tags'].validators[0]
         self.assertTrue(
             isinstance(
-                form.fields['tags'].validators[0],
+                regex_validator,
                 validators.RegexValidator
             )
+        )
+        self.assertTrue(
+            regex_validator.inverse_match,
         )
 
     def test_field_tags_validators_validate_tags(self):

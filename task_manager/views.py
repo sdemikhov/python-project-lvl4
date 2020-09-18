@@ -39,7 +39,7 @@ def profile(request):
 @login_required
 def create_task(request):
     default_fields = {
-        'creator': request.user.pk,
+        'creator': request.user,
         'status': TaskStatus.objects.first()
     }
     task_form = tm_forms.TaskForm(

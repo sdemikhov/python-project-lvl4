@@ -160,7 +160,10 @@ class CreateTagsForm(forms.Form):
             'Separate each tag by "|"'
         ),
         validators=[
-            validators.RegexValidator(NOT_PERMITED_TAG_SYMBOLS),
+            validators.RegexValidator(
+                NOT_PERMITED_TAG_SYMBOLS,
+                inverse_match=True
+            ),
             validate_tags
         ],
         required=False

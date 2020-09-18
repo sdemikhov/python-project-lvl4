@@ -58,7 +58,6 @@ class TaskStatusModelTest(TestCase):
 
 
 class TagModelTest(TestCase):
-
     @classmethod
     def setUpTestData(cls):
         tm_models.Tag.objects.create(name='tag_model_test')
@@ -98,7 +97,6 @@ class TagModelTest(TestCase):
 
 
 class TaskModelTest(TestCase):
-
     @classmethod
     def setUpTestData(cls):
         status = tm_models.TaskStatus.objects.create(name='test_status')
