@@ -18,11 +18,15 @@ local:
 migrate:
 	poetry run python manage.py migrate
 
+collectstatic:
+	poetry run python manage.py collectstatic
+
 initadmin:
 	poetry run python manage.py initadmin
+
 initstatuses:
 	poetry run python manage.py initstatuses
 
-prepare: migrate initadmin initstatuses
+prepare: migrate collectstatic initadmin initstatuses
 
 .PHONY: install test lint selfcheck check local migrate initadmin

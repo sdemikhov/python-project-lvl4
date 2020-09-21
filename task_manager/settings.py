@@ -64,16 +64,17 @@ if os.getenv("DJANGO_ENVIRONMENT") == 'local':
     }
     ROLLBAR['environment'] = 'development'
     ALLOWED_HOSTS = ['127.0.0.1', 'testserver']
-elif os.getenv("DJANGO_ENVIRONMENT") == 'test':
-    DEBUG = True
+elif os.getenv("DJANGO_ENVIRONMENT") == 'travis':
+    DEBUG = False
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'test_db.sqlite3'),
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'travis_ci_test',
+            'USER': "postgres",
         }
     }
-    ROLLBAR['environment'] = 'development'
-    ALLOWED_HOSTS = []
+    ROLLBAR['environment'] = 'travis'
+    ALLOWED_HOSTS = ['127.0.0.1', 'testserver']
 
 # Application definition
 

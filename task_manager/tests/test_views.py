@@ -525,3 +525,722 @@ class DeleteTaskVIew(TestCase):
             tm_models.Task.objects.get(
                 name=self.task.name
             )
+
+
+class TasksViewTest(TestCase):
+    def setUp(self):
+        self.ludmila = User.objects.create(
+            first_name='Ludmila',
+            last_name='Sidorova',
+            username='lsidorova',
+            email='lsidorova@example.com',
+        )
+        self.ludmila.set_password('t4e3s2t1')
+        self.ludmila.save()
+        self.oleg = User.objects.create(
+            first_name='Oleg',
+            last_name='Petrov',
+            username='opetrov',
+            email='opetrov@example.com',
+        )
+        self.oleg.set_password('t4e3s2t1')
+        self.oleg.save()
+        self.tatyana = User.objects.create(
+            first_name='Tatyana',
+            last_name='Ivanova',
+            username='tivanova',
+            email='tivanova@example.com',
+        )
+        self.tatyana.set_password('t4e3s2t1')
+        self.tatyana.save()
+
+        self.status_new = tm_models.TaskStatus.objects.create(
+            name='test_tasks_view_status_new'
+        )
+        self.status_done = tm_models.TaskStatus.objects.create(
+            name='test_tasks_view_status_done'
+        )
+        self.status_testing = tm_models.TaskStatus.objects.create(
+            name='test_tasks_view_status_testing'
+        )
+
+        self.tag_one = tm_models.Tag.objects.create(name='tag_one')
+        self.tag_two = tm_models.Tag.objects.create(name='tag_two')
+        self.tag_three = tm_models.Tag.objects.create(name='tag_three')
+
+        self.task_first = tm_models.Task.objects.create(
+            name='first',
+            description='description',
+            status=self.status_new,
+            creator=self.ludmila,
+            assigned_to=self.ludmila,
+        )
+        self.task_second = tm_models.Task.objects.create(
+            name='second',
+            description='description',
+            status=self.status_done,
+            creator=self.ludmila,
+            assigned_to=self.oleg,
+        )
+        self.task_second.tags.set(
+            (self.tag_one,)
+        )
+        self.task_third = tm_models.Task.objects.create(
+            name='third',
+            description='description',
+            status=self.status_new,
+            creator=self.oleg,
+            assigned_to=self.oleg,
+        )
+        self.task_third.tags.set(
+            (self.tag_one, self.tag_two)
+        )
+        self.task_fourth = tm_models.Task.objects.create(
+            name='fourth',
+            description='description',
+            status=self.status_done,
+            creator=self.oleg,
+            assigned_to=self.ludmila,
+        )
+        self.task_fourth.tags.set(
+            (self.tag_two,)
+        )
+
+    def test_redirect_if_not_logged_in(self):
+        response = self.client.get(
+            reverse('tasks')
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(
+            response.url.startswith(reverse('login'))
+        )
+
+    def test_logged_in_uses_correct_context(self):
+        login = self.client.login(
+            username='lsidorova',
+            password='t4e3s2t1'
+        )
+        self.assertTrue(login)
+        response = self.client.get(reverse('tasks'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'task_manager/tasks.html')
+        self.assertEquals(response.context['tasks'], [])
+
+        self.assertTrue(
+            isinstance(
+                response.context['filter_type_form'],
+                tm_forms.FilterTypeForm
+            )
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_my_tasks'],
+                tm_forms.FilterByMyTasksForm
+            )
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_tags_form'],
+                tm_forms.FilterByTagsForm
+            )
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_status_form'],
+                tm_forms.FilterByStatusForm
+            )
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_assigned_to_form'],
+                tm_forms.FilterByAssignedToForm
+            )
+        )
+
+    def test_logged_in_uses_filter_my_tasks(self):
+        login = self.client.login(
+            username='lsidorova',
+            password='t4e3s2t1'
+        )
+        self.assertTrue(login)
+        response = self.client.get(
+            reverse('tasks'),
+            {'filter_': 'my_tasks'}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'task_manager/tasks.html')
+        self.assertEquals(
+            set(response.context['tasks']),
+            {self.task_first, self.task_fourth}
+        )
+
+        self.assertTrue(
+            isinstance(
+                response.context['filter_type_form'],
+                tm_forms.FilterTypeForm
+            )
+        )
+        self.assertEquals(
+            response.context['filter_type_form']['filter_'].data,
+            'my_tasks'
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_my_tasks'],
+                tm_forms.FilterByMyTasksForm
+            )
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_tags_form'],
+                tm_forms.FilterByTagsForm
+            )
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_status_form'],
+                tm_forms.FilterByStatusForm
+            )
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_assigned_to_form'],
+                tm_forms.FilterByAssignedToForm
+            )
+        )
+
+    def test_logged_in_uses_filter_by_tag_one(self):
+        login = self.client.login(
+            username='lsidorova',
+            password='t4e3s2t1'
+        )
+        self.assertTrue(login)
+        response = self.client.get(
+            reverse('tasks'),
+            {
+                'filter_': 'tags',
+                'tags': self.tag_one.pk
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'task_manager/tasks.html')
+        self.assertEquals(
+            set(response.context['tasks']),
+            {self.task_second, self.task_third}
+        )
+
+        self.assertTrue(
+            isinstance(
+                response.context['filter_type_form'],
+                tm_forms.FilterTypeForm
+            )
+        )
+        self.assertEquals(
+            response.context['filter_type_form']['filter_'].data,
+            'tags'
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_my_tasks'],
+                tm_forms.FilterByMyTasksForm
+            )
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_tags_form'],
+                tm_forms.FilterByTagsForm
+            )
+        )
+        self.assertEquals(
+            response.context['filter_by_tags_form']['tags'].data[0],
+            str(self.tag_one.pk)
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_status_form'],
+                tm_forms.FilterByStatusForm
+            )
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_assigned_to_form'],
+                tm_forms.FilterByAssignedToForm
+            )
+        )
+
+    def test_logged_in_uses_filter_by_tag_two(self):
+        login = self.client.login(
+            username='lsidorova',
+            password='t4e3s2t1'
+        )
+        self.assertTrue(login)
+        response = self.client.get(
+            reverse('tasks'),
+            {
+                'filter_': 'tags',
+                'tags': self.tag_two.pk
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'task_manager/tasks.html')
+        self.assertEquals(
+            set(response.context['tasks']),
+            {self.task_third, self.task_fourth}
+        )
+
+        self.assertTrue(
+            isinstance(
+                response.context['filter_type_form'],
+                tm_forms.FilterTypeForm
+            )
+        )
+        self.assertEquals(
+            response.context['filter_type_form']['filter_'].data,
+            'tags'
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_my_tasks'],
+                tm_forms.FilterByMyTasksForm
+            )
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_tags_form'],
+                tm_forms.FilterByTagsForm
+            )
+        )
+        self.assertEquals(
+            response.context['filter_by_tags_form']['tags'].data[0],
+            str(self.tag_two.pk)
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_status_form'],
+                tm_forms.FilterByStatusForm
+            )
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_assigned_to_form'],
+                tm_forms.FilterByAssignedToForm
+            )
+        )
+
+    def test_logged_in_uses_filter_by_tag_one_and_tag_two(self):
+        login = self.client.login(
+            username='lsidorova',
+            password='t4e3s2t1'
+        )
+        self.assertTrue(login)
+        response = self.client.get(
+            reverse('tasks'),
+            {
+                'filter_': 'tags',
+                'tags': (self.tag_one.pk, self.tag_two.pk)
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'task_manager/tasks.html')
+        self.assertEquals(
+            set(response.context['tasks']),
+            {self.task_second, self.task_third, self.task_fourth}
+        )
+
+        self.assertTrue(
+            isinstance(
+                response.context['filter_type_form'],
+                tm_forms.FilterTypeForm
+            )
+        )
+        self.assertEquals(
+            response.context['filter_type_form']['filter_'].data,
+            'tags'
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_my_tasks'],
+                tm_forms.FilterByMyTasksForm
+            )
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_tags_form'],
+                tm_forms.FilterByTagsForm
+            )
+        )
+        self.assertEquals(
+            response.context['filter_by_tags_form']['tags'].data,
+            [str(self.tag_one.pk), str(self.tag_two.pk)]
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_status_form'],
+                tm_forms.FilterByStatusForm
+            )
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_assigned_to_form'],
+                tm_forms.FilterByAssignedToForm
+            )
+        )
+
+    def test_logged_in_uses_filter_by_tag_three(self):
+        login = self.client.login(
+            username='lsidorova',
+            password='t4e3s2t1'
+        )
+        self.assertTrue(login)
+        response = self.client.get(
+            reverse('tasks'),
+            {
+                'filter_': 'tags',
+                'tags': self.tag_three.pk
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'task_manager/tasks.html')
+        self.assertEquals(
+            set(response.context['tasks']),
+            set()
+        )
+
+        self.assertTrue(
+            isinstance(
+                response.context['filter_type_form'],
+                tm_forms.FilterTypeForm
+            )
+        )
+        self.assertEquals(
+            response.context['filter_type_form']['filter_'].data,
+            'tags'
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_my_tasks'],
+                tm_forms.FilterByMyTasksForm
+            )
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_tags_form'],
+                tm_forms.FilterByTagsForm
+            )
+        )
+        self.assertEquals(
+            response.context['filter_by_tags_form']['tags'].data[0],
+            str(self.tag_three.pk)
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_status_form'],
+                tm_forms.FilterByStatusForm
+            )
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_assigned_to_form'],
+                tm_forms.FilterByAssignedToForm
+            )
+        )
+
+    def test_logged_in_uses_filter_by_status_new(self):
+        login = self.client.login(
+            username='lsidorova',
+            password='t4e3s2t1'
+        )
+        self.assertTrue(login)
+        response = self.client.get(
+            reverse('tasks'),
+            {
+                'filter_': 'status',
+                'status': self.status_new.pk,
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'task_manager/tasks.html')
+        self.assertEquals(
+            set(response.context['tasks']),
+            {self.task_first, self.task_third}
+        )
+
+        self.assertTrue(
+            isinstance(
+                response.context['filter_type_form'],
+                tm_forms.FilterTypeForm
+            )
+        )
+        self.assertEquals(
+            response.context['filter_type_form']['filter_'].data,
+            'status'
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_my_tasks'],
+                tm_forms.FilterByMyTasksForm
+            )
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_tags_form'],
+                tm_forms.FilterByTagsForm
+            )
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_status_form'],
+                tm_forms.FilterByStatusForm
+            )
+        )
+        self.assertEquals(
+            response.context['filter_by_status_form']['status'].data,
+            str(self.status_new.pk)
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_assigned_to_form'],
+                tm_forms.FilterByAssignedToForm
+            )
+        )
+
+    def test_logged_in_uses_filter_by_status_done(self):
+        login = self.client.login(
+            username='lsidorova',
+            password='t4e3s2t1'
+        )
+        self.assertTrue(login)
+        response = self.client.get(
+            reverse('tasks'),
+            {
+                'filter_': 'status',
+                'status': self.status_done.pk,
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'task_manager/tasks.html')
+        self.assertEquals(
+            set(response.context['tasks']),
+            {self.task_second, self.task_fourth}
+        )
+
+        self.assertTrue(
+            isinstance(
+                response.context['filter_type_form'],
+                tm_forms.FilterTypeForm
+            )
+        )
+        self.assertEquals(
+            response.context['filter_type_form']['filter_'].data,
+            'status'
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_my_tasks'],
+                tm_forms.FilterByMyTasksForm
+            )
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_tags_form'],
+                tm_forms.FilterByTagsForm
+            )
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_status_form'],
+                tm_forms.FilterByStatusForm
+            )
+        )
+        self.assertEquals(
+            response.context['filter_by_status_form']['status'].data,
+            str(self.status_done.pk)
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_assigned_to_form'],
+                tm_forms.FilterByAssignedToForm
+            )
+        )
+
+    def test_logged_in_uses_filter_by_status_testing(self):
+        login = self.client.login(
+            username='lsidorova',
+            password='t4e3s2t1'
+        )
+        self.assertTrue(login)
+        response = self.client.get(
+            reverse('tasks'),
+            {
+                'filter_': 'status',
+                'status': self.status_testing.pk,
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'task_manager/tasks.html')
+        self.assertEquals(
+            set(response.context['tasks']),
+            set()
+        )
+
+        self.assertTrue(
+            isinstance(
+                response.context['filter_type_form'],
+                tm_forms.FilterTypeForm
+            )
+        )
+        self.assertEquals(
+            response.context['filter_type_form']['filter_'].data,
+            'status'
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_my_tasks'],
+                tm_forms.FilterByMyTasksForm
+            )
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_tags_form'],
+                tm_forms.FilterByTagsForm
+            )
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_status_form'],
+                tm_forms.FilterByStatusForm
+            )
+        )
+        self.assertEquals(
+            response.context['filter_by_status_form']['status'].data,
+            str(self.status_testing.pk)
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_assigned_to_form'],
+                tm_forms.FilterByAssignedToForm
+            )
+        )
+
+    def test_logged_in_uses_filter_by_assigned_to_oleg(self):
+        login = self.client.login(
+            username='lsidorova',
+            password='t4e3s2t1'
+        )
+        self.assertTrue(login)
+        response = self.client.get(
+            reverse('tasks'),
+            {
+                'filter_': 'assigned_to',
+                'assigned_to': self.oleg.pk,
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'task_manager/tasks.html')
+        self.assertEquals(
+            set(response.context['tasks']),
+            {self.task_second, self.task_third}
+        )
+
+        self.assertTrue(
+            isinstance(
+                response.context['filter_type_form'],
+                tm_forms.FilterTypeForm
+            )
+        )
+        self.assertEquals(
+            response.context['filter_type_form']['filter_'].data,
+            'assigned_to'
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_my_tasks'],
+                tm_forms.FilterByMyTasksForm
+            )
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_tags_form'],
+                tm_forms.FilterByTagsForm
+            )
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_status_form'],
+                tm_forms.FilterByStatusForm
+            )
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_assigned_to_form'],
+                tm_forms.FilterByAssignedToForm
+            )
+        )
+        self.assertEquals(
+            response.context['filter_by_assigned_to_form'][
+                'assigned_to'
+            ].data,
+            str(self.oleg.pk)
+        )
+
+    def test_logged_in_uses_filter_by_assigned_to_tatyana(self):
+        login = self.client.login(
+            username='lsidorova',
+            password='t4e3s2t1'
+        )
+        self.assertTrue(login)
+        response = self.client.get(
+            reverse('tasks'),
+            {
+                'filter_': 'assigned_to',
+                'assigned_to': self.tatyana.pk,
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'task_manager/tasks.html')
+        self.assertEquals(
+            set(response.context['tasks']),
+            set()
+        )
+
+        self.assertTrue(
+            isinstance(
+                response.context['filter_type_form'],
+                tm_forms.FilterTypeForm
+            )
+        )
+        self.assertEquals(
+            response.context['filter_type_form']['filter_'].data,
+            'assigned_to'
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_my_tasks'],
+                tm_forms.FilterByMyTasksForm
+            )
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_tags_form'],
+                tm_forms.FilterByTagsForm
+            )
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_status_form'],
+                tm_forms.FilterByStatusForm
+            )
+        )
+        self.assertTrue(
+            isinstance(
+                response.context['filter_by_assigned_to_form'],
+                tm_forms.FilterByAssignedToForm
+            )
+        )
+        self.assertEquals(
+            response.context['filter_by_assigned_to_form'][
+                'assigned_to'
+            ].data,
+            str(self.tatyana.pk)
+        )

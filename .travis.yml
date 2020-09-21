@@ -1,15 +1,28 @@
 language: python
 python: 3.7
 
+env:
+  global:
+    - CC_TEST_REPORTER_ID=60cf71692a150dbd978a3ee66d6bc09134b59e2e1aef626d92e10109b32e32d1
+
+services:
+  - postgresql
+
 before_install:
-  # make depends on poetry
   - pip install poetry
 
 install:
   - make install
 
 before-script:
+  - psql -c 'create database travis_ci_test;' -U postgres
+  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+  - chmod +x ./cc-test-reporter
+  - ./cc-test-reporter before-build
   - make prepare
 
 script:
   - make check
+
+after_script:
+- if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT; fi
