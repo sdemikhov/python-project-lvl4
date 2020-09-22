@@ -58,10 +58,6 @@ class IndexViewTest(TestCase):
         response = self.client.get(reverse('index'))
         self.assertEqual(response.status_code, 200)
         self.assertTrue(
-            response.context.get('created_tasks_count'),
-            1
-        )
-        self.assertTrue(
             response.context.get('assigned_tasks_count'),
             1
         )
@@ -306,6 +302,35 @@ class TaskDetailsViewTest(TestCase):
             'task_manager/task_details.html'
         )
 
+    def test_logged_in_get_invalid_task_id(self):
+        login = self.client.login(
+            username='ansidorov',
+            password='t4e3s2t1'
+        )
+        self.assertTrue(login)
+        response = self.client.get(
+            reverse('task_details', args=['4094'])
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_logged_in_post_invalid_task_id(self):
+        login = self.client.login(
+            username='ansidorov',
+            password='t4e3s2t1'
+        )
+        self.assertTrue(login)
+        response = self.client.post(
+            reverse('task_details', args=['4094']),
+            {
+                'name': ['Name after edit'],
+                'description': ['Description after edit'],
+                'status': [self.status_done.pk],
+                'assigned_to': [self.andrew.pk],
+                'tags': ['testing_task_details|fresh_new_tag']
+            }
+        )
+        self.assertEqual(response.status_code, 404)
+
     def test_logged_in_uses_correct_context_initial_state(self):
         login = self.client.login(
             username='ansidorov',
@@ -493,6 +518,28 @@ class DeleteTaskVIew(TestCase):
             response.context['task'],
             self.task
         )
+
+    def test_logged_in_get_invalid_task_status_id(self):
+        login = self.client.login(
+            username='desidorov',
+            password='t4e3s2t1'
+        )
+        self.assertTrue(login)
+        response = self.client.get(
+            reverse('delete_task', args=['4094'])
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_logged_in_post_invalid_task_status_id(self):
+        login = self.client.login(
+            username='desidorov',
+            password='t4e3s2t1'
+        )
+        self.assertTrue(login)
+        response = self.client.post(
+            reverse('delete_task', args=['4094'])
+        )
+        self.assertEqual(response.status_code, 404)
 
     def test_not_creator_delete_task(self):
         login = self.client.login(
@@ -1243,4 +1290,280 @@ class TasksViewTest(TestCase):
                 'assigned_to'
             ].data,
             str(self.tatyana.pk)
+        )
+
+
+class StatusesViewTest(TestCase):
+    def setUp(self):
+        self.ksenia = User.objects.create(
+            first_name='Ksenia',
+            last_name='Petrova',
+            username='kspetrova',
+            email='kspetrova@example.com',
+        )
+        self.ksenia.set_password('t4e3s2t1')
+        self.ksenia.save()
+
+        self.status_one = tm_models.TaskStatus.objects.create(
+            name='test_statuses_view_status_one'
+        )
+        self.status_two = tm_models.TaskStatus.objects.create(
+            name='test_statuses_view_status_two'
+        )
+
+    def test_redirect_if_not_logged_in(self):
+        response = self.client.get(reverse('statuses'))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.url.startswith(reverse('login')))
+
+    def test_logged_in_uses_correct_context(self):
+        login = self.client.login(
+            username='kspetrova',
+            password='t4e3s2t1'
+        )
+        self.assertTrue(login)
+        response = self.client.get(reverse('statuses'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'task_manager/statuses.html')
+        self.assertEquals(
+            set(response.context['statuses']),
+            {self.status_one, self.status_two}
+        )
+
+        self.assertTrue(
+            isinstance(
+                response.context['form'],
+                tm_forms.StatusForm
+            )
+        )
+
+    def test_logged_in_post_create_status(self):
+        login = self.client.login(
+            username='kspetrova',
+            password='t4e3s2t1'
+        )
+        self.assertTrue(login)
+        response = self.client.post(
+            reverse('statuses'),
+            {'name': ['test_statuses_view_status_three']},
+            follow=True
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'task_manager/statuses.html')
+
+        status_three = tm_models.TaskStatus.objects.get(
+            name='test_statuses_view_status_three'
+        )
+        self.assertEquals(
+            set(response.context['statuses']),
+            {self.status_one, self.status_two, status_three}
+        )
+
+        self.assertTrue(
+            isinstance(
+                response.context['form'],
+                tm_forms.StatusForm
+            )
+        )
+
+
+class EditStatusViewTest(TestCase):
+    def setUp(self):
+        self.svetlana = User.objects.create(
+            first_name='Svetlana',
+            last_name='Petrova',
+            username='svpetrova',
+            email='svpetrova@example.com',
+        )
+        self.svetlana.set_password('t4e3s2t1')
+        self.svetlana.save()
+
+        self.status_one = tm_models.TaskStatus.objects.create(
+            name='test_statuses_view_status_one_before_edit'
+        )
+        self.status_two = tm_models.TaskStatus.objects.create(
+            name='test_statuses_view_status_two'
+        )
+
+    def test_redirect_if_not_logged_in(self):
+        response = self.client.get(
+            reverse('edit_status', args=[str(self.status_one.pk)])
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.url.startswith(reverse('login')))
+
+    def test_logged_in_uses_correct_context(self):
+        login = self.client.login(
+            username='svpetrova',
+            password='t4e3s2t1'
+        )
+        self.assertTrue(login)
+        response = self.client.get(
+            reverse('edit_status', args=[str(self.status_one.pk)])
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'task_manager/edit_status.html')
+        self.assertEquals(
+            response.context['status'],
+            self.status_one
+        )
+
+        self.assertTrue(
+            isinstance(
+                response.context['form'],
+                tm_forms.StatusForm
+            )
+        )
+
+    def test_logged_in_post_edit_status(self):
+        login = self.client.login(
+            username='svpetrova',
+            password='t4e3s2t1'
+        )
+        self.assertTrue(login)
+        response = self.client.post(
+            reverse('edit_status', args=[str(self.status_one.pk)]),
+            {'name': ['test_statuses_view_status_one_after_edit']},
+            follow=True
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'task_manager/statuses.html')
+
+        with self.assertRaises(tm_models.TaskStatus.DoesNotExist):
+            tm_models.TaskStatus.objects.get(
+                name='test_statuses_view_status_one_before_edit'
+            )
+        status_one_updated = tm_models.TaskStatus.objects.get(
+            name='test_statuses_view_status_one_after_edit'
+        )
+        self.assertEquals(
+            set(response.context['statuses']),
+            {status_one_updated, self.status_two}
+        )
+
+        self.assertTrue(
+            isinstance(
+                response.context['form'],
+                tm_forms.StatusForm
+            )
+        )
+
+    def test_logged_in_get_edit_status_invalid_status_id(self):
+        login = self.client.login(
+            username='svpetrova',
+            password='t4e3s2t1'
+        )
+        self.assertTrue(login)
+        response = self.client.get(
+            reverse('edit_status', args=['4094'])
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_logged_in_post_edit_status_invalid_status_id(self):
+        login = self.client.login(
+            username='svpetrova',
+            password='t4e3s2t1'
+        )
+        self.assertTrue(login)
+        response = self.client.post(
+            reverse('edit_status', args=['4094']),
+            {'name': ['test_statuses_view_invalid_id']}
+        )
+        self.assertEqual(response.status_code, 404)
+
+
+class DeleteStatusViewTest(TestCase):
+    def setUp(self):
+        self.nadezhda = User.objects.create(
+            first_name='Nadezhda',
+            last_name='Petrova',
+            username='napetrova',
+            email='napetrova@example.com',
+        )
+        self.nadezhda.set_password('t4e3s2t1')
+        self.nadezhda.save()
+
+        self.status_one = tm_models.TaskStatus.objects.create(
+            name='test_status_delete_view_status_one'
+        )
+        self.status_two = tm_models.TaskStatus.objects.create(
+            name='test_statuses_delete_view_status_two'
+        )
+
+    def test_redirect_if_not_logged_in(self):
+        response = self.client.get(
+            reverse('edit_status', args=[str(self.status_one.pk)])
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.url.startswith(reverse('login')))
+
+    def test_logged_in_get_invalid_status_id(self):
+        login = self.client.login(
+            username='napetrova',
+            password='t4e3s2t1'
+        )
+        self.assertTrue(login)
+        response = self.client.get(
+            reverse('delete_status', args=['4094'])
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_logged_in_post_edit_status_invalid_status_id(self):
+        login = self.client.login(
+            username='napetrova',
+            password='t4e3s2t1'
+        )
+        self.assertTrue(login)
+        response = self.client.post(
+            reverse('delete_status', args=['4094']),
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_logged_in_uses_correct_context(self):
+        login = self.client.login(
+            username='napetrova',
+            password='t4e3s2t1'
+        )
+        self.assertTrue(login)
+        response = self.client.get(
+            reverse('delete_status', args=[str(self.status_one.pk)])
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'task_manager/delete_status.html')
+        self.assertEquals(
+            response.context['status'],
+            self.status_one
+        )
+
+    def test_logged_in_post_delete_status(self):
+        login = self.client.login(
+            username='napetrova',
+            password='t4e3s2t1'
+        )
+        self.assertTrue(login)
+        response = self.client.post(
+            reverse('delete_status', args=[str(self.status_one.pk)]),
+            follow=True
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'task_manager/statuses.html')
+
+        with self.assertRaises(tm_models.TaskStatus.DoesNotExist):
+            tm_models.TaskStatus.objects.get(
+                name='test_status_delete_view_status_one'
+            )
+
+        self.assertEquals(
+            set(response.context['statuses']),
+            {self.status_two}
+        )
+
+        self.assertTrue(
+            isinstance(
+                response.context['form'],
+                tm_forms.StatusForm
+            )
         )

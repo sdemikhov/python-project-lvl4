@@ -10,13 +10,13 @@
     <div class="container">
         <h3>Task-Manager</h3>
         {% if user.is_authenticated %}
-            Tasks created by you: {{ created_tasks_count }} Tasks assigned to you: {{ assigned_tasks_count }}
+            Tasks assigned to me: <a href="{% url "tasks" %}?filter_=my_tasks">{{ created_tasks_count }}</a>
         {% else %}
-            <p>"This is the online demo for uses to test Task-Manager and its features. All the data here is temporary and may be reset at any time."</p>
-            <p>You should start to register for an account and then:</p>
+            <p>"This is the online demo of Task-Manager project."</p>
+            <p>Register for an account and test and its features:</p>
             <ul>
-                <li>Browse the tasks list and post a few updates on the tasks</li>
-                <li>Create statuses for your working process.</li>
+                <li>Create, update, browse and delete and the tasks list</li>
+                <li>Manage statuses for your working process</li>
             </ul>
         {% endif %}
     </div>

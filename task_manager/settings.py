@@ -62,7 +62,7 @@ if os.getenv("DJANGO_ENVIRONMENT") == 'local':
             'PORT': os.getenv("LOCAL_DB_PORT"),
         }
     }
-    ROLLBAR['environment'] = 'development'
+    ROLLBAR['environment'] = 'local'
     ALLOWED_HOSTS = ['127.0.0.1', 'testserver']
 elif os.getenv("DJANGO_ENVIRONMENT") == 'travis':
     DEBUG = False

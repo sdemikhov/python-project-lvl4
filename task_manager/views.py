@@ -251,7 +251,7 @@ def delete_status(request, status_id):
                 messages.WARNING,
                 "This status has bounded tasks, you can not delete it."
             )
-            return redirect('statuses')
+        return redirect('statuses')
     return render(
         request,
         'task_manager/delete_status.html',
