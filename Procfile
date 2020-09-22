@@ -1,3 +1,2 @@
-release: python manage.py migrate
-release: python manage.py initadmin
+release: ./release.sh
 web:  gunicorn task_manager.wsgi --log-file -
