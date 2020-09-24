@@ -8,9 +8,9 @@
 
 {% block content %}
     <div class="container">
+        <h3>Create new status:</h3>
         <div class="row">
-            <div class="col-4">
-                <h3>Create new status:</h3>
+            <div class="col-sm-3">
                 <form method="post">
                     {% csrf_token %}
                     {% bootstrap_form_errors form %}
@@ -23,7 +23,7 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-3">
+            <div class="col-sm-3">
                 <h3>Available statuses:</h3>
                 <ul class="list-group">
                     {% for status in statuses %}

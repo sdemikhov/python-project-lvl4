@@ -9,18 +9,16 @@
 {% block content %}
     <div class="container">
         <div class="row ">
-            <div class="col-8">
+            <div class="col-sm-8">
                 <h2>Delete task#{{ task.pk }} - "{{ task.name }}", are you sure?</h2>
                 <form method="POST" id="confirm-form">
                     {% csrf_token %} 
                 </form>
             </div>
-            <div class="col-1">
-                <input class="btn btn-dark" form="confirm-form" type="submit" value="Yes" />
-            </div>
-            <div class="col-1">
-                <a class="btn btn-dark" href="{% url 'task_details' task.pk %}">No</a> 
-            </div>
+        </div>
+        <div>
+            <input class="btn btn-dark" form="confirm-form" type="submit" value="Yes" />
+            <a class="btn btn-dark" href="{% url 'task_details' task.pk %}">No</a> 
         </div>
     </div>
 {% endblock %}

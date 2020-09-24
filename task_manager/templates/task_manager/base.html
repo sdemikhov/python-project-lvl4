@@ -2,6 +2,8 @@
 {% load static %}
 
 <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>{% block title %}sdemikhov-Task-Manager{% endblock %}</title>
     <link rel="shortcut icon" type="image/png" href="{% static 'task_manager/favicon.ico' %}">
     <link rel="apple-touch-icon" sizes="180x180" href="{% static  'task_manager/apple-touch-icon.png' %}">
@@ -15,7 +17,7 @@
 <body>
     {% with request.resolver_match.url_name as url_name %}
         <header class="mb-5">
-            <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <nav class="navbar navbar-expand-md navbar-dark bg-dark">
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>

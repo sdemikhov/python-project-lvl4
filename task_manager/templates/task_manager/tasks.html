@@ -14,14 +14,14 @@
 {% block content %}
     <div class="container">
         <div class="row">
-            <div class="col-4">
+            <div class="col-sm-4">
                 <form>
                     {% bootstrap_form filter_type_form %}
                 </form>
             </div>
         </div>
         <div class="row">
-            <div class="col-6">
+            <div class="col-sm-4">
                 <form id="{{ filter_by_my_tasks.filter_type }}" hidden>
                     {% bootstrap_form_errors filter_by_my_tasks %}
                     {% bootstrap_form filter_by_my_tasks %}
@@ -58,7 +58,7 @@
         </div>
         <div class="row">
             <div class="col">
-                <table class="table table-striped">
+                <table class="table table-sm table-striped">
                     <thead class="thead-dark">
                         <tr>
                             <th scope="col">Name</th>
