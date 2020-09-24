@@ -1,27 +1,18 @@
-{% extends 'bootstrap4/bootstrap4.html' %}
-
 {% load bootstrap4 %}
 {% load static %}
 
-{% bootstrap_css %}
-{% bootstrap_javascript jquery='full' %}
-
-{% block bootstrap4_title %}
-    {% block title %}
-        sdemikhov-Task-Manager
-    {% endblock %}
-{% endblock %}
-
-{% block bootstrap4_extra_head %}
+<head>
+    <title>{% block title %}sdemikhov-Task-Manager{% endblock %}</title>
     <link rel="shortcut icon" type="image/png" href="{% static 'task_manager/favicon.ico' %}">
     <link rel="apple-touch-icon" sizes="180x180" href="{% static  'task_manager/apple-touch-icon.png' %}">
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'task_manager/favicon-32x32.png' %}">
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'task_manager/favicon-16x16.png' %}">
+    {% bootstrap_css %}
     {% block head_extra %}
     {% endblock %}
-{% endblock %}
+</head>
 
-{% block bootstrap4_before_content %}
+<body>
     {% with request.resolver_match.url_name as url_name %}
         <header class="mb-5">
             <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -56,9 +47,6 @@
             </nav>
         </header>
     {% endwith %}
-{% endblock %}
-
-{% block bootstrap4_content %}
     <main role="main" class="">
         {% if messages %}
             <ul class="list-group">
@@ -73,7 +61,5 @@
         {% block content %}
         {% endblock %}
     </main>
-{% endblock %}
-
-{% block bootstrap4_after_content %}
-{% endblock %}
+    {% bootstrap_javascript jquery='full' %}
+</body>

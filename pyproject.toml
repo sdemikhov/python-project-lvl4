@@ -7,7 +7,6 @@ authors = ["Sergey Demikhov <demikhov.sergey@gmail.com>"]
 [tool.poetry.dependencies]
 python = "^3.7"
 django = "^3.0.8"
-django-bootstrap4 = "^2.2.0"
 rollbar = "^0.15.0"
 python-dotenv = "^0.14.0"
 psycopg2 = "^2.8.5"
@@ -15,6 +14,7 @@ gunicorn = "^20.0.4"
 dj-database-url = "^0.5.0"
 whitenoise = "^5.1.0"
 django-registration = "^3.1"
+django-bootstrap4 = "^2.2.0"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.8.3"
