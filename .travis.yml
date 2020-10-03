@@ -1,10 +1,6 @@
 language: python
 python: 3.7
 
-env:
-  global:
-    - CC_TEST_REPORTER_ID=60cf71692a150dbd978a3ee66d6bc09134b59e2e1aef626d92e10109b32e32d1
-
 services:
   - postgresql
 

@@ -185,7 +185,6 @@ def tasks(request):
                     tm_forms.ASSIGNED_TO
                 ]
             )
-
     return render(
         request,
         'task_manager/tasks.html',

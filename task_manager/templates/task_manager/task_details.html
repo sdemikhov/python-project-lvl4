@@ -22,7 +22,12 @@
             </div>
             <div class="row">
                 <div class="col-xl m-1">Assigned to: {{ task.assigned_to.get_full_name }}</div>
-                <div class="col-xl m-1">Tags: {{ task.tags.all|join:" " }}</div>
+                <div class="col-xl m-1">
+                        Tags:
+                        {% for tag in task.tags.all %}
+                            <div class="badge">{{ tag.name }}</div>
+                        {% endfor %}
+                </div>
             </div>
         </div>
         <h3>Description:</h3>

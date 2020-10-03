@@ -27,7 +27,7 @@
                     {% bootstrap_form filter_by_my_tasks %}
                     {% buttons %}
                         <input type="hidden" name="filter_" value="{{ filter_by_my_tasks.filter_type }}">
-                        <input class="btn btn-dark" type="submit" value="Search">
+                        <input class="btn btn-dark" type="submit" value="Apply">
                     {% endbuttons %}
                 </form>
                 <form id="{{ filter_by_tags_form.filter_type }}" hidden>
@@ -35,7 +35,7 @@
                     {% bootstrap_form filter_by_tags_form %}
                     {% buttons %}
                         <input type="hidden" name="filter_" value="{{ filter_by_tags_form.filter_type }}">
-                        <input class="btn btn-dark" type="submit" value="Search">
+                        <input class="btn btn-dark" type="submit" value="Apply">
                     {% endbuttons %}
                 </form>
                 <form id="{{ filter_by_status_form.filter_type }}" hidden>
@@ -43,7 +43,7 @@
                     {% bootstrap_form filter_by_status_form %}
                     {% buttons %}
                         <input type="hidden" name="filter_" value="{{ filter_by_status_form.filter_type }}">
-                        <input class="btn btn-dark" type="submit" value="Search">
+                        <input class="btn btn-dark" type="submit" value="Apply">
                     {% endbuttons %}
                 </form hidden>
                 <form id="{{ filter_by_assigned_to_form.filter_type }}" hidden>
@@ -51,7 +51,7 @@
                     {% bootstrap_form filter_by_assigned_to_form %}
                     {% buttons %}
                         <input type="hidden" name="filter_" value="{{ filter_by_assigned_to_form.filter_type }}">
-                        <input class="btn btn-dark" type="submit" value="Search">
+                        <input class="btn btn-dark" type="submit" value="Apply">
                     {% endbuttons %}
                 </form>
             </div>
@@ -78,7 +78,11 @@
                                 <td class="text-break">{{ task.status }}</td>
                                 <td class="text-break">{{ task.creator.get_full_name }}</td>
                                 <td class="text-break">{{ task.assigned_to.get_full_name }}</td>
-                                <td class="text-break">{{ task.tags.all|join:", " }}</td>
+                                <td class="text-break">
+                                    {% for tag in task.tags.all %}
+                                        <div class="badge">{{ tag.name }}</div>
+                                    {% endfor %}
+                                </td>
                             </tr>
                             {% endfor %}
                         {% endif %}
