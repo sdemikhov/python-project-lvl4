@@ -39,8 +39,7 @@ initstatuses:
 	poetry run python manage.py initstatuses
 
 .PHONY: prepare
-prepare:
-	migrate collectstatic initadmin initstatuses
+prepare: migrate collectstatic initadmin initstatuses
 
 .PHONY: heroku_release
 heroku_release:
