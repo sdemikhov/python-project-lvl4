@@ -3,22 +3,20 @@
 {% load bootstrap4 %}
 
 {% block title %}
-    Task-Manager edit status {{ object.name }}
+    Task-Manager create status
 {% endblock %}
 
 {% block content %}
     <div class="container">
         <div class="row">
             <div class="col-sm-5">
-                <h2>Edit "{{ object.name }}" status:</h2>
-                <form method="post">
+                <h2>New status</h2>
+                <form method="post" class="form">
                     {% csrf_token %}
                     {% bootstrap_form_errors form %}
-
                     {% bootstrap_form form %}
                     {% buttons %}
-                        <input class="btn btn-dark" type="submit" value="Save">
-                        <a class="btn btn-dark" href="{% url 'statuses' %}">Back</a>
+                        <button type="submit" class="btn btn-dark">Save</button>
                     {% endbuttons %}
                 </form>
             </div>

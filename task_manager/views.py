@@ -2,6 +2,11 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django_registration.backends.one_step.views import RegistrationView
 from django.contrib import messages
+from django.views.generic.list import ListView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.contrib.messages.views import SuccessMessageMixin
+from django.urls import reverse_lazy
 
 from task_manager import forms as tm_forms
 from task_manager.models import TaskStatus, Tag, Task
@@ -127,9 +132,8 @@ def delete_task(request, task_id):
             task.delete()
             return redirect('tasks')
         else:
-            messages.add_message(
+            messages.error(
                 request,
-                messages.WARNING,
                 'Only creator can delete this task.'
             )
             return redirect('task_details', task_id)
@@ -199,62 +203,47 @@ def tasks(request):
     )
 
 
-@login_required
-def statuses(request):
-    form = tm_forms.StatusForm()
-    statuses = TaskStatus.objects.all()
-    if request.method == 'POST':
-        form = tm_forms.StatusForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('statuses')
-    return render(
-        request,
-        'task_manager/statuses.html',
-        context={
-            'form': form,
-            'statuses': statuses,
-        }
-    )
+class StatusesView(LoginRequiredMixin, ListView):
+    model = TaskStatus
+    template_name = 'task_manager/statuses.html'
+    context_object_name = 'statuses'
 
 
-@login_required
-def edit_status(request, status_id):
-    status = get_object_or_404(TaskStatus, pk=status_id)
-    form = tm_forms.StatusForm(instance=status)
-    if request.method == 'POST':
-        form = tm_forms.StatusForm(request.POST, instance=status)
-        if form.is_valid():
-            form.save()
-            return redirect('statuses')
-    return render(
-        request,
-        'task_manager/edit_status.html',
-        context={
-            'form': form,
-            'status': status,
-        }
-    )
+class CreateStatusView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
+    model = TaskStatus
+    template_name = 'task_manager/create_status.html'
+    success_url = reverse_lazy('statuses')
+    success_message = 'Status "%(name)s" was created successfully'
+    fields = ['name']
 
 
-@login_required
-def delete_status(request, status_id):
-    status = get_object_or_404(TaskStatus, pk=status_id)
-    if request.method == 'POST':
+class UpdateStatusView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
+    model = TaskStatus
+    template_name = 'task_manager/edit_status.html'
+    success_url = reverse_lazy('statuses')
+    success_message = 'Status "%(name)s" was edited successfully'
+    fields = ['name']
+
+
+class DeleteStatusView(LoginRequiredMixin, DeleteView):
+    model = TaskStatus
+    template_name = 'task_manager/delete_status.html'
+    success_url = reverse_lazy('statuses')
+
+    def delete(self, request, *args, **kwargs):
+        status = self.get_object()
         bounded_tasks = status.bounded_tasks.all()
         if not bounded_tasks:
-            status.delete()
-        else:
-            messages.add_message(
+            messages.success(
                 request,
-                messages.WARNING,
-                "This status has bounded tasks, you can not delete it."
+                'Status "{}" was deleted successfully'.format(status.name)
             )
-        return redirect('statuses')
-    return render(
-        request,
-        'task_manager/delete_status.html',
-        context={
-            'status': status,
-        }
-    )
+            return super().delete(request, *args, **kwargs)
+        else:
+            message = (
+                'Status "{}" has bounded tasks, you can not delete it!'.format(
+                    status.name
+                )
+            )
+            messages.error(request, message)
+            return redirect('statuses')

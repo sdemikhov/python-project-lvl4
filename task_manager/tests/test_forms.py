@@ -389,19 +389,3 @@ class CreateTagsFormTest(TestCase):
                 form.fields['tags'].validators[1],
                 tm_forms.validate_tags
         )
-
-
-class StatusFormTest(TestCase):
-    def test_form_fields(self):
-        form = tm_forms.StatusForm()
-        self.assertEquals(
-            form.Meta().fields,
-            ('name',)
-        )
-
-    def test_form_model(self):
-        form = tm_forms.StatusForm()
-        self.assertEquals(
-            form.Meta().model,
-            tm_models.TaskStatus
-        )

@@ -3,14 +3,14 @@
 {% load bootstrap4 %}
 
 {% block title %}
-    Task-Manager Delete status {{ status.name }}
+    Task-Manager delete status {{ object.name }}
 {% endblock %}
 
 {% block content %}
     <div class="container">
         <div class="row ">
             <div class="col-sm-7">
-                <h2>Delete status "{{ status.name }}", are you sure?</h2>
+                <h2>Delete status "{{ object.name }}", are you sure?</h2>
                 <form method="POST" id="confirm-form"> 
                     {% csrf_token %} 
                 </form>

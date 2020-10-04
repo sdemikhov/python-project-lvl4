@@ -1,6 +1,11 @@
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
+from django.views.generic.list import ListView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.contrib.messages.views import SuccessMessageMixin
+from django.urls import reverse_lazy
 
 from task_manager import forms as tm_forms
 from task_manager import views as tm_views
@@ -1304,13 +1309,6 @@ class StatusesViewTest(TestCase):
         self.ksenia.set_password('t4e3s2t1')
         self.ksenia.save()
 
-        self.status_one = tm_models.TaskStatus.objects.create(
-            name='test_statuses_view_status_one'
-        )
-        self.status_two = tm_models.TaskStatus.objects.create(
-            name='test_statuses_view_status_two'
-        )
-
     def test_redirect_if_not_logged_in(self):
         response = self.client.get(reverse('statuses'))
 
@@ -1325,46 +1323,88 @@ class StatusesViewTest(TestCase):
         self.assertTrue(login)
         response = self.client.get(reverse('statuses'))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'task_manager/statuses.html')
-        self.assertEquals(
-            set(response.context['statuses']),
-            {self.status_one, self.status_two}
+        self.assertEqual(
+                tm_views.StatusesView.model,
+                tm_models.TaskStatus
         )
-
+        self.assertEqual(
+            tm_views.StatusesView.template_name,
+            'task_manager/statuses.html'
+        )
+        self.assertEqual(
+            tm_views.StatusesView.context_object_name,
+            'statuses'
+        )
         self.assertTrue(
-            isinstance(
-                response.context['form'],
-                tm_forms.StatusForm
-            )
+            LoginRequiredMixin in tm_views.StatusesView.mro()
+        )
+        self.assertTrue(
+            ListView in tm_views.StatusesView.mro()
         )
 
-    def test_logged_in_post_create_status(self):
+
+class CreateStatusViewTest(TestCase):
+    def setUp(self):
+        self.svetlana = User.objects.create(
+            first_name='Svetlanaa',
+            last_name='Petrovaa',
+            username='svpetrovaa',
+            email='svpetrovaa@example.com',
+        )
+        self.svetlana.set_password('t4e3s2t1')
+        self.svetlana.save()
+
+        self.status_one = tm_models.TaskStatus.objects.create(
+            name='test_statuses_view_status_one_'
+        )
+
+    def test_redirect_if_not_logged_in(self):
+        response = self.client.get(
+            reverse('create_status')
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.url.startswith(reverse('login')))
+
+    def test_logged_in_uses_correct_context(self):
         login = self.client.login(
-            username='kspetrova',
+            username='svpetrovaa',
             password='t4e3s2t1'
         )
         self.assertTrue(login)
-        response = self.client.post(
-            reverse('statuses'),
-            {'name': ['test_statuses_view_status_three']},
-            follow=True
+        response = self.client.get(
+            reverse('create_status')
         )
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'task_manager/statuses.html')
 
-        status_three = tm_models.TaskStatus.objects.get(
-            name='test_statuses_view_status_three'
+        self.assertEqual(
+                tm_views.CreateStatusView.model,
+                tm_models.TaskStatus
         )
-        self.assertEquals(
-            set(response.context['statuses']),
-            {self.status_one, self.status_two, status_three}
+        self.assertEqual(
+            tm_views.CreateStatusView.template_name,
+            'task_manager/create_status.html'
         )
-
+        self.assertEqual(
+            tm_views.CreateStatusView.success_url,
+            reverse_lazy('statuses')
+        )
+        self.assertEqual(
+            tm_views.CreateStatusView.success_message,
+            'Status "%(name)s" was created successfully'
+        )
+        self.assertEqual(
+            tm_views.CreateStatusView.fields,
+            ['name']
+        )
         self.assertTrue(
-            isinstance(
-                response.context['form'],
-                tm_forms.StatusForm
-            )
+            LoginRequiredMixin in tm_views.CreateStatusView.mro()
+        )
+        self.assertTrue(
+            SuccessMessageMixin in tm_views.CreateStatusView.mro()
+        )
+        self.assertTrue(
+            CreateView in tm_views.CreateStatusView.mro()
         )
 
 
@@ -1382,9 +1422,6 @@ class EditStatusViewTest(TestCase):
         self.status_one = tm_models.TaskStatus.objects.create(
             name='test_statuses_view_status_one_before_edit'
         )
-        self.status_two = tm_models.TaskStatus.objects.create(
-            name='test_statuses_view_status_two'
-        )
 
     def test_redirect_if_not_logged_in(self):
         response = self.client.get(
@@ -1404,74 +1441,36 @@ class EditStatusViewTest(TestCase):
             reverse('edit_status', args=[str(self.status_one.pk)])
         )
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'task_manager/edit_status.html')
-        self.assertEquals(
-            response.context['status'],
-            self.status_one
-        )
 
+        self.assertEqual(
+                tm_views.UpdateStatusView.model,
+                tm_models.TaskStatus
+        )
+        self.assertEqual(
+            tm_views.UpdateStatusView.template_name,
+            'task_manager/edit_status.html'
+        )
+        self.assertEqual(
+            tm_views.UpdateStatusView.success_url,
+            reverse_lazy('statuses')
+        )
+        self.assertEqual(
+            tm_views.UpdateStatusView.success_message,
+            'Status "%(name)s" was edited successfully'
+        )
+        self.assertEqual(
+            tm_views.UpdateStatusView.fields,
+            ['name']
+        )
         self.assertTrue(
-            isinstance(
-                response.context['form'],
-                tm_forms.StatusForm
-            )
+            LoginRequiredMixin in tm_views.UpdateStatusView.mro()
         )
-
-    def test_logged_in_post_edit_status(self):
-        login = self.client.login(
-            username='svpetrova',
-            password='t4e3s2t1'
-        )
-        self.assertTrue(login)
-        response = self.client.post(
-            reverse('edit_status', args=[str(self.status_one.pk)]),
-            {'name': ['test_statuses_view_status_one_after_edit']},
-            follow=True
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'task_manager/statuses.html')
-
-        with self.assertRaises(tm_models.TaskStatus.DoesNotExist):
-            tm_models.TaskStatus.objects.get(
-                name='test_statuses_view_status_one_before_edit'
-            )
-        status_one_updated = tm_models.TaskStatus.objects.get(
-            name='test_statuses_view_status_one_after_edit'
-        )
-        self.assertEquals(
-            set(response.context['statuses']),
-            {status_one_updated, self.status_two}
-        )
-
         self.assertTrue(
-            isinstance(
-                response.context['form'],
-                tm_forms.StatusForm
-            )
+            SuccessMessageMixin in tm_views.UpdateStatusView.mro()
         )
-
-    def test_logged_in_get_edit_status_invalid_status_id(self):
-        login = self.client.login(
-            username='svpetrova',
-            password='t4e3s2t1'
+        self.assertTrue(
+            UpdateView in tm_views.UpdateStatusView.mro()
         )
-        self.assertTrue(login)
-        response = self.client.get(
-            reverse('edit_status', args=['4094'])
-        )
-        self.assertEqual(response.status_code, 404)
-
-    def test_logged_in_post_edit_status_invalid_status_id(self):
-        login = self.client.login(
-            username='svpetrova',
-            password='t4e3s2t1'
-        )
-        self.assertTrue(login)
-        response = self.client.post(
-            reverse('edit_status', args=['4094']),
-            {'name': ['test_statuses_view_invalid_id']}
-        )
-        self.assertEqual(response.status_code, 404)
 
 
 class DeleteStatusViewTest(TestCase):
@@ -1532,10 +1531,20 @@ class DeleteStatusViewTest(TestCase):
             reverse('delete_status', args=[str(self.status_one.pk)])
         )
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'task_manager/delete_status.html')
-        self.assertEquals(
-            response.context['status'],
-            self.status_one
+
+        self.assertEqual(
+            tm_views.DeleteStatusView.template_name,
+            'task_manager/delete_status.html'
+        )
+        self.assertEqual(
+            tm_views.DeleteStatusView.success_url,
+            reverse_lazy('statuses')
+        )
+        self.assertTrue(
+            LoginRequiredMixin in tm_views.DeleteStatusView.mro()
+        )
+        self.assertTrue(
+            DeleteView in tm_views.DeleteStatusView.mro()
         )
 
     def test_logged_in_post_delete_status(self):
@@ -1549,21 +1558,8 @@ class DeleteStatusViewTest(TestCase):
             follow=True
         )
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'task_manager/statuses.html')
 
         with self.assertRaises(tm_models.TaskStatus.DoesNotExist):
             tm_models.TaskStatus.objects.get(
                 name='test_status_delete_view_status_one'
             )
-
-        self.assertEquals(
-            set(response.context['statuses']),
-            {self.status_two}
-        )
-
-        self.assertTrue(
-            isinstance(
-                response.context['form'],
-                tm_forms.StatusForm
-            )
-        )

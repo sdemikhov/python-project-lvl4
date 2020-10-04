@@ -168,11 +168,3 @@ class CreateTagsForm(forms.Form):
         ],
         required=False
     )
-
-
-class StatusForm(forms.ModelForm):
-    class Meta:
-        model = TaskStatus
-        fields = (
-            'name',
-        )

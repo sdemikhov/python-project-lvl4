@@ -32,15 +32,20 @@ urlpatterns = [
         views.delete_task,
         name='delete_task'
     ),
-    path('statuses/', views.statuses, name='statuses'),
+    path('statuses/', views.StatusesView.as_view(), name='statuses'),
     path(
-        'statuses/edit/<int:status_id>',
-        views.edit_status,
+        'statuses/create',
+        views.CreateStatusView.as_view(),
+        name='create_status'
+    ),
+    path(
+        'statuses/<int:pk>/edit',
+        views.UpdateStatusView.as_view(),
         name='edit_status'
     ),
     path(
-        'statuses/delete/<int:status_id>',
-        views.delete_status,
+        'statuses/<int:pk>/delete',
+        views.DeleteStatusView.as_view(),
         name='delete_status'
     ),
     path('accounts/profile/', views.profile, name='profile'),

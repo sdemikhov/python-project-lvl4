@@ -3,35 +3,22 @@
 {% load bootstrap4 %}
 
 {% block title %}
-    Task-Manager Create status
+    Task-Manager statuses
 {% endblock %}
 
 {% block content %}
     <div class="container">
-        <h3>Create new status:</h3>
         <div class="row">
             <div class="col-sm-3">
-                <form method="post">
-                    {% csrf_token %}
-                    {% bootstrap_form_errors form %}
-
-                    {% bootstrap_form form %}
-                    {% buttons %}
-                        <input class="btn btn-dark" type="submit" value="Create">
-                    {% endbuttons %}
-                </form>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-sm-3">
-                <h3>Available statuses:</h3>
+                <h3>Statuses</h3>
+                <a class="btn btn-dark mb-3" href="{% url 'create_status' %}">create new</a>
                 <ul class="list-group">
                     {% for status in statuses %}
                         <li class="list-group-item">
                             <p><strong>{{ status.name }}</strong></p>
                             <div>
-                                <a class="btn btn-dark" href="{% url 'edit_status' status_id=status.pk %}">edit</a>
-                                <a class="btn btn-dark" href="{% url 'delete_status' status_id=status.pk %}">delete</a>
+                                <a class="btn btn-dark" href="{% url 'edit_status' pk=status.pk %}">edit</a>
+                                <a class="btn btn-dark" href="{% url 'delete_status' pk=status.pk %}">delete</a>
                             </div>
                         </li>
                     {% endfor %}
