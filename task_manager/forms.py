@@ -71,6 +71,9 @@ class FilterTypeForm(forms.Form):
 
 class FilterByMyTasksForm(forms.Form):
     filter_type = MY_TASKS
+    enable = forms.BooleanField(
+        label = 'My tasks'
+    )
 
 
 class FilterByTagsForm(forms.Form):
@@ -93,6 +96,7 @@ class FilterByStatusForm(forms.Form):
     status = forms.TypedChoiceField(
         coerce=int,
         label='Select status',
+        required=False
     )
 
     def __init__(self, *args, **kwargs):

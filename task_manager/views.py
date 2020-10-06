@@ -2,8 +2,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django_registration.backends.one_step.views import RegistrationView
 from django.contrib import messages
-from django.views.generic.list import ListView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic.base import TemplateView
+from django.views.generic.list import ListView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse_lazy
@@ -36,9 +37,8 @@ def index(request):
     )
 
 
-@login_required
-def profile(request):
-    return render(request, 'task_manager/profile.html')
+class ProfileView(LoginRequiredMixin, TemplateView):
+    template_name = 'task_manager/profile.html'
 
 
 @login_required
@@ -80,8 +80,8 @@ def create_task(request):
 
 
 @login_required
-def task_details(request, task_id):
-    task = get_object_or_404(Task, pk=task_id)
+def task_details(request, pk):
+    task = get_object_or_404(Task, pk=pk)
 
     task_form = tm_forms.TaskForm(instance=task)
     task_form.fields['creator'].disabled = True
@@ -124,26 +124,26 @@ def task_details(request, task_id):
     )
 
 
-@login_required
-def delete_task(request, task_id):
-    task = get_object_or_404(Task, pk=task_id)
-    if request.method == 'POST':
+class DeleteTaskView(LoginRequiredMixin, DeleteView):
+    model = Task
+    template_name = 'task_manager/delete_task.html'
+    success_url = reverse_lazy('tasks')
+
+    def delete(self, request, *args, **kwargs):
+        task = self.get_object()
         if task.creator.pk == request.user.pk:
-            task.delete()
-            return redirect('tasks')
-        else:
-            messages.error(
+            messages.success(
                 request,
-                'Only creator can delete this task.'
+                'Task "{}" was deleted successfully'.format(task.name)
             )
-            return redirect('task_details', task_id)
-    return render(
-        request,
-        'task_manager/delete_task.html',
-        context={
-            'task': task,
-        }
-    )
+            return super().delete(request, *args, **kwargs)
+        message = (
+            'Only creator "{}" can delete this task.'.format(
+                task.creator.get_full_name()
+            )
+        )
+        messages.error(request, message)
+        return redirect('task_details', pk=task.pk)
 
 
 @login_required
@@ -203,6 +203,10 @@ def tasks(request):
     )
 
 
+class TasksView(LoginRequiredMixin, ListView):
+    pass
+
+
 class StatusesView(LoginRequiredMixin, ListView):
     model = TaskStatus
     template_name = 'task_manager/statuses.html'
@@ -233,13 +237,7 @@ class DeleteStatusView(LoginRequiredMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         status = self.get_object()
         bounded_tasks = status.bounded_tasks.all()
-        if not bounded_tasks:
-            messages.success(
-                request,
-                'Status "{}" was deleted successfully'.format(status.name)
-            )
-            return super().delete(request, *args, **kwargs)
-        else:
+        if bounded_tasks:
             message = (
                 'Status "{}" has bounded tasks, you can not delete it!'.format(
                     status.name
@@ -247,3 +245,8 @@ class DeleteStatusView(LoginRequiredMixin, DeleteView):
             )
             messages.error(request, message)
             return redirect('statuses')
+        messages.success(
+            request,
+            'Status "{}" was deleted successfully'.format(status.name)
+        )
+        return super().delete(request, *args, **kwargs)

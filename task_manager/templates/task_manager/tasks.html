@@ -8,51 +8,36 @@
 {% endblock %}
 
 {% block head_extra %}
+<!--
     <script src="{% static 'task_manager/searchTasks.js' %}" defer></script>
+-->
 {% endblock %}
 
 {% block content %}
     <div class="container">
         <div class="row">
-            <div class="col-sm-4">
-                <form>
-                    {% bootstrap_form filter_type_form %}
-                </form>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-sm-4">
-                <form id="{{ filter_by_my_tasks.filter_type }}" hidden>
+            <div class="col-sm-3">
+                <form id="{{ filter_by_my_tasks.filter_type }}">
                     {% bootstrap_form_errors filter_by_my_tasks %}
                     {% bootstrap_form filter_by_my_tasks %}
-                    {% buttons %}
-                        <input type="hidden" name="filter_" value="{{ filter_by_my_tasks.filter_type }}">
-                        <input class="btn btn-dark" type="submit" value="Apply">
-                    {% endbuttons %}
                 </form>
-                <form id="{{ filter_by_tags_form.filter_type }}" hidden>
+            </div>
+            <div class="col-sm-3">
+                <form id="{{ filter_by_tags_form.filter_type }}">
                     {% bootstrap_form_errors filter_by_tags_form %}
                     {% bootstrap_form filter_by_tags_form %}
-                    {% buttons %}
-                        <input type="hidden" name="filter_" value="{{ filter_by_tags_form.filter_type }}">
-                        <input class="btn btn-dark" type="submit" value="Apply">
-                    {% endbuttons %}
                 </form>
-                <form id="{{ filter_by_status_form.filter_type }}" hidden>
+            </div>
+            <div class="col-sm-3">
+                <form id="{{ filter_by_status_form.filter_type }}">
                     {% bootstrap_form_errors filter_by_status_form %}
                     {% bootstrap_form filter_by_status_form %}
-                    {% buttons %}
-                        <input type="hidden" name="filter_" value="{{ filter_by_status_form.filter_type }}">
-                        <input class="btn btn-dark" type="submit" value="Apply">
-                    {% endbuttons %}
                 </form hidden>
-                <form id="{{ filter_by_assigned_to_form.filter_type }}" hidden>
+            </div>
+            <div class="col-sm-3">
+                <form id="{{ filter_by_assigned_to_form.filter_type }}">
                     {% bootstrap_form_errors filter_by_assigned_to_form %}
                     {% bootstrap_form filter_by_assigned_to_form %}
-                    {% buttons %}
-                        <input type="hidden" name="filter_" value="{{ filter_by_assigned_to_form.filter_type }}">
-                        <input class="btn btn-dark" type="submit" value="Apply">
-                    {% endbuttons %}
                 </form>
             </div>
         </div>
