@@ -13,9 +13,6 @@ from task_manager import forms as tm_forms
 from task_manager.models import TaskStatus, Tag, Task
 
 
-FILTER = 'filter_'
-
-
 class CustomRegistrationView(RegistrationView):
     form_class = tm_forms.CustomRegistrationForm
 
@@ -146,65 +143,33 @@ class DeleteTaskView(LoginRequiredMixin, DeleteView):
         return redirect('task_details', pk=task.pk)
 
 
-@login_required
-def tasks(request):
-    filter_type_form = tm_forms.FilterTypeForm(request.GET or None)
-    filter_by_my_tasks = tm_forms.FilterByMyTasksForm(
-    )
-    filter_by_tags_form = tm_forms.FilterByTagsForm()
-    filter_by_status_form = tm_forms.FilterByStatusForm()
-    filter_by_assigned_to_form = tm_forms.FilterByAssignedToForm()
-
-    filter_ = request.GET.get(FILTER)
-    tasks = []
-
-    if filter_ == tm_forms.MY_TASKS:
-        tasks = Task.objects.filter(
-            assigned_to=request.user.pk
-        )
-    elif filter_ == tm_forms.TAGS:
-        filter_by_tags_form = tm_forms.FilterByTagsForm(request.GET)
-        if filter_by_tags_form.is_valid():
-            user_inputed_tags = filter_by_tags_form.cleaned_data[
-                tm_forms.TAGS
-            ]
-            tasks = Task.objects.filter(
-                tags__in=user_inputed_tags
-            ).distinct()
-    elif filter_ == tm_forms.STATUS:
-        filter_by_status_form = tm_forms.FilterByStatusForm(request.GET)
-        if filter_by_status_form.is_valid():
-            tasks = Task.objects.filter(
-                status=filter_by_status_form.cleaned_data[
-                    tm_forms.STATUS
-                ]
-            )
-    elif filter_ == tm_forms.ASSIGNED_TO:
-        filter_by_assigned_to_form = tm_forms.FilterByAssignedToForm(
-            request.GET
-        )
-        if filter_by_assigned_to_form.is_valid():
-            tasks = Task.objects.filter(
-                assigned_to=filter_by_assigned_to_form.cleaned_data[
-                    tm_forms.ASSIGNED_TO
-                ]
-            )
-    return render(
-        request,
-        'task_manager/tasks.html',
-        context={
-            'filter_type_form': filter_type_form,
-            'filter_by_my_tasks': filter_by_my_tasks,
-            'filter_by_tags_form': filter_by_tags_form,
-            'filter_by_status_form': filter_by_status_form,
-            'filter_by_assigned_to_form': filter_by_assigned_to_form,
-            'tasks': tasks,
-        }
-    )
-
-
 class TasksView(LoginRequiredMixin, ListView):
-    pass
+    model = Task
+    template_name = 'task_manager/tasks.html'
+    context_object_name = 'tasks'
+
+    def get_queryset(self):
+        self.filter_form = tm_forms.FilterForm(self.request.GET or None)
+        if self.filter_form.is_valid():
+            filters = {
+                k: v for k, v in self.filter_form.cleaned_data.items()
+                if v
+            }
+
+            if filters.get('my_tasks'):
+                filters['assigned_to'] = self.request.user.pk
+                del filters['my_tasks']
+
+            tasks = Task.objects.filter(**filters).distinct()
+        else:
+            tasks = Task.objects.all()
+        return tasks
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['filter_form'] = self.filter_form
+        print(context)
+        return context
 
 
 class StatusesView(LoginRequiredMixin, ListView):

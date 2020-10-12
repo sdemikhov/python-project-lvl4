@@ -1,4 +1,4 @@
-{% extends "task_manager/base.html" %}
+{% extends "task_manager/base.html" %}7
 
 {% load bootstrap4 %}
 {% load static %}
@@ -8,50 +8,49 @@
 {% endblock %}
 
 {% block head_extra %}
-<!--
-    <script src="{% static 'task_manager/searchTasks.js' %}" defer></script>
--->
+    <script src="{% static 'task_manager/tasks.js' %}" defer></script>
+    <link rel='stylesheet' href="{% static 'task_manager/filter-form-style.css' %}">
 {% endblock %}
 
 {% block content %}
     <div class="container">
         <div class="row">
-            <div class="col-sm-3">
-                <form id="{{ filter_by_my_tasks.filter_type }}">
-                    {% bootstrap_form_errors filter_by_my_tasks %}
-                    {% bootstrap_form filter_by_my_tasks %}
-                </form>
-            </div>
-            <div class="col-sm-3">
-                <form id="{{ filter_by_tags_form.filter_type }}">
-                    {% bootstrap_form_errors filter_by_tags_form %}
-                    {% bootstrap_form filter_by_tags_form %}
-                </form>
-            </div>
-            <div class="col-sm-3">
-                <form id="{{ filter_by_status_form.filter_type }}">
-                    {% bootstrap_form_errors filter_by_status_form %}
-                    {% bootstrap_form filter_by_status_form %}
-                </form hidden>
-            </div>
-            <div class="col-sm-3">
-                <form id="{{ filter_by_assigned_to_form.filter_type }}">
-                    {% bootstrap_form_errors filter_by_assigned_to_form %}
-                    {% bootstrap_form filter_by_assigned_to_form %}
+            <div class="col-sm">
+                <form novalidate class=''>
+                    {% bootstrap_form_errors filter_form %}
+                    <div class="form-row align-items-start pb-3">
+                        {% bootstrap_field filter_form.my_tasks form_group_class='col-sm-2'%}
+                        {% bootstrap_field filter_form.assigned_to form_group_class='col-sm-3'%}
+                        {% bootstrap_field filter_form.creator form_group_class='col-sm-3'%}
+                        {% bootstrap_field filter_form.status form_group_class='col-sm-3'%}
+                    </div>
+                    <div class="form-row align-items-end pb-3">
+                        <div class="dropdown col-sm">
+                            <button class="btn btn-dark" id="dLabel" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Tags
+                            </button>
+                            <div class="dropdown-menu" aria-labelledby="dLabel">
+                                {% bootstrap_field filter_form.tags__in form_group_class='col-sm mh-300p overflow-auto'%}
+                            </div>
+                        </div>
+                    </div>
+                    {% buttons %}
+                        <button type="submit" class="btn btn-dark">Apply</button>
+                    {% endbuttons %}
                 </form>
             </div>
         </div>
         <div class="row">
-            <div class="col">
+            <div class="col-sm">
                 <table class="table table-sm table-striped">
                     <thead class="thead-dark">
                         <tr>
-                            <th scope="col">Name</th>
-                            <th scope="col">Description</th>
-                            <th scope="col">Status</th>
-                            <th scope="col">Creator</th>
-                            <th scope="col">Assigned to</th>
-                            <th scope="col">Tags</th>
+                            <th scope="col-sm">Name</th>
+                            <th scope="col-sm">Description</th>
+                            <th scope="col-sm">Status</th>
+                            <th scope="col-sm">Creator</th>
+                            <th scope="col-sm">Assigned to</th>
+                            <th scope="col-sm">Tags</th>
                         </tr>
                     </thead>
                     <tbody>

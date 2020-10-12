@@ -62,63 +62,49 @@ class CustomRegistrationForm(RegistrationForm):
         return user
 
 
-class FilterTypeForm(forms.Form):
-    filter_ = forms.ChoiceField(
-        label='Filter',
-        choices=FILTERS
+class FilterForm(forms.Form):
+    my_tasks = forms.BooleanField(
+        label='My tasks',
+        required=False,
     )
-
-
-class FilterByMyTasksForm(forms.Form):
-    filter_type = MY_TASKS
-    enable = forms.BooleanField(
-        label = 'My tasks'
-    )
-
-
-class FilterByTagsForm(forms.Form):
-    filter_type = TAGS
-    tags = forms.MultipleChoiceField(
-        label='Select tags',
-        widget=forms.CheckboxSelectMultiple,
-    )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['tags'].choices = [
-            (row.pk, getattr(row, 'name'))
-            for row in Tag.objects.order_by('name').all()
-        ]
-
-
-class FilterByStatusForm(forms.Form):
-    filter_type = STATUS
     status = forms.TypedChoiceField(
         coerce=int,
-        label='Select status',
-        required=False
+        label='Status',
+        required=False,
+    )
+    creator = forms.TypedChoiceField(
+        coerce=int,
+        label='Creator',
+        required=False,
+    )
+    assigned_to = forms.TypedChoiceField(
+        coerce=int,
+        label='Assigned to',
+        required=False,
+    )
+    tags__in = forms.MultipleChoiceField(
+        label='Tags',
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
     )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['status'].choices = [
+        self.fields['status'].choices = [(None, '-----')] + [
             (row.pk, getattr(row, 'name'))
             for row in TaskStatus.objects.all()
         ]
-
-
-class FilterByAssignedToForm(forms.Form):
-    filter_type = ASSIGNED_TO
-    assigned_to = forms.TypedChoiceField(
-        coerce=int,
-        label='Select person',
-    )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['assigned_to'].choices = [
+        self.fields['creator'].choices = [(None, '-----')] + [
             (user.pk, user.get_full_name())
             for user in User.objects.filter(is_staff=False)
+        ]
+        self.fields['assigned_to'].choices = [(None, '-----')] + [
+            (user.pk, user.get_full_name())
+            for user in User.objects.filter(is_staff=False)
+        ]
+        self.fields['tags__in'].choices = [
+            (row.pk, getattr(row, 'name'))
+            for row in Tag.objects.order_by('name').all()
         ]
 
 
