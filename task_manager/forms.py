@@ -1,26 +1,12 @@
 from django_registration.forms import RegistrationForm
 from django import forms
 from django.core import validators
-from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 
 from task_manager.models import TaskStatus, Tag, Task
 from task_manager import fields as tm_fields
 
 ONLY_LETTERS = r'^[a-zA-Zа-яА-Я]+$'
-
-MY_TASKS = 'my_tasks'
-TAGS = 'tags'
-STATUS = 'status'
-ASSIGNED_TO = 'assigned_to'
-
-FILTERS = (
-    (MY_TASKS, 'My tasks'),
-    (TAGS, 'Tags'),
-    (STATUS, 'Status'),
-    (ASSIGNED_TO, 'Assigned to'),
-)
-NOT_PERMITED_TAG_SYMBOLS = r'[^0-9a-zA-Zа-яА-Я _|]'
 
 
 class CustomRegistrationForm(RegistrationForm):
@@ -108,31 +94,6 @@ class FilterForm(forms.Form):
         ]
 
 
-class TaskForm(forms.ModelForm):
-    class Meta:
-        model = Task
-        fields = (
-            'name',
-            'description',
-            'status',
-            'creator',
-            'assigned_to',
-        )
-        field_classes = {
-            'creator': tm_fields.UserModelChoiceField,
-            'assigned_to': tm_fields.UserModelChoiceField
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['creator'].queryset = User.objects.filter(
-            is_staff=False
-        )
-        self.fields['assigned_to'].queryset = User.objects.filter(
-            is_staff=False
-        )
-
-
 def validate_tags(value):
     tags = value.split('|')
     for tag in tags:
@@ -144,17 +105,29 @@ def validate_tags(value):
         raise ValidationError('You can select 10 tags maximum')
 
 
-class CreateTagsForm(forms.Form):
-    tags = forms.CharField(
-        help_text=(
-            'Separate each tag by "|"'
-        ),
-        validators=[
-            validators.RegexValidator(
-                NOT_PERMITED_TAG_SYMBOLS,
-                inverse_match=True
-            ),
-            validate_tags
-        ],
-        required=False
-    )
+class TaskForm(forms.ModelForm):
+    tags = tm_fields.TagsField()
+
+    class Meta:
+        model = Task
+        fields = (
+            'name',
+            'description',
+            'status',
+            'creator',
+            'assigned_to',
+            'tags',
+        )
+        field_classes = {
+            'creator': tm_fields.UserModelChoiceField,
+            'assigned_to': tm_fields.UserModelChoiceField,
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['creator'].queryset = User.objects.filter(
+            is_staff=False
+        )
+        self.fields['assigned_to'].queryset = User.objects.filter(
+            is_staff=False
+        )

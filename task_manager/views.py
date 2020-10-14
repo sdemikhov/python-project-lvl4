@@ -5,7 +5,9 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
-from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.views.generic.edit import (
+    CreateView, UpdateView, DeleteView, FormView
+)
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse_lazy
 
@@ -38,42 +40,50 @@ class ProfileView(LoginRequiredMixin, TemplateView):
     template_name = 'task_manager/profile.html'
 
 
-@login_required
-def create_task(request):
-    default_fields = {
-        'creator': request.user,
-        'status': TaskStatus.objects.first()
-    }
-    task_form = tm_forms.TaskForm(
-        request.POST or None,
-        initial=default_fields,
-    )
-    task_form.fields['creator'].disabled = True
-    task_form.fields['status'].disabled = True
+#@login_required
+#def create_task(request):
+    #default_fields = {
+        #'creator': request.user,
+        #'status': TaskStatus.objects.first()
+    #}
+    #task_form = tm_forms.TaskForm(
+        #request.POST or None,
+        #initial=default_fields,
+    #)
+    #task_form.fields['creator'].disabled = True
+    #task_form.fields['status'].disabled = True
 
-    tag_form = tm_forms.CreateTagsForm(request.POST or None)
-    if request.method == 'POST':
-        if task_form.is_valid() and tag_form.is_valid():
-            task = task_form.save()
-            user_inputed_tags = tag_form.cleaned_data['tags']
-            if user_inputed_tags:
-                tags = set()
-                for user_inputed_tag in user_inputed_tags.split('|'):
-                    tag, _ = Tag.objects.get_or_create(
-                        name=user_inputed_tag.strip()
-                    )
-                    tags.add(tag)
-                task.tags.add(*tags)
-                task.save()
-            return redirect('tasks')
-    return render(
-        request,
-        'task_manager/create_task.html',
-        context={
-            'task_form': task_form,
-            'tag_form': tag_form,
-        }
-    )
+    #tag_form = tm_forms.CreateTagsForm(request.POST or None)
+    #if request.method == 'POST':
+        #if task_form.is_valid() and tag_form.is_valid():
+            #task = task_form.save()
+            #user_inputed_tags = tag_form.cleaned_data['tags']
+            #if user_inputed_tags:
+                #tags = set()
+                #for user_inputed_tag in user_inputed_tags.split('|'):
+                    #tag, _ = Tag.objects.get_or_create(
+                        #name=user_inputed_tag.strip()
+                    #)
+                    #tags.add(tag)
+                #task.tags.add(*tags)
+                #task.save()
+            #return redirect('tasks')
+    #return render(
+        #request,
+        #'task_manager/create_task.html',
+        #context={
+            #'task_form': task_form,
+            #'tag_form': tag_form,
+        #}
+    #)
+
+
+#class CreateTaskView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
+    #model = TaskStatus
+    #template_name = 'task_manager/create_status.html'
+    #success_url = reverse_lazy('statuses')
+    #success_message = 'Status "%(name)s" was created successfully'
+    #fields = ['name']
 
 
 @login_required

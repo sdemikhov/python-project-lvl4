@@ -21,7 +21,7 @@ from task_manager import views
 urlpatterns = [
     path('', views.index, name='index'),
     path('tasks/', views.TasksView.as_view(), name='tasks'),
-    path('tasks/new', views.create_task, name='create_task'),
+    path('tasks/new', views.CreateTaskView.as_view(), name='create_task'),
     path(
         'tasks/<int:pk>/details',
         views.task_details,
