@@ -43,11 +43,9 @@
                     <a class="btn btn-dark" href="{% url 'delete_task' task.pk %}">delete</a>
                     <form id="edit-form" method="post" class="d-none m-3">
                         {% csrf_token %}
-                        {% bootstrap_form_errors task_form %}
-                        {% bootstrap_form_errors tag_form %}
+                        {% bootstrap_form_errors form %}
 
-                        {% bootstrap_form task_form %}
-                        {% bootstrap_form tag_form %}
+                        {% bootstrap_form form %}
                         {% buttons %}
                             <input class="btn btn-dark" type="hidden" name="next" value="{{ request.path }}">
                             <input class="btn btn-dark" type="submit" value="Save">

@@ -1,14 +1,15 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django_registration.backends.one_step.views import RegistrationView
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.messages.views import SuccessMessageMixin
 from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
 from django.views.generic.edit import (
-    CreateView, UpdateView, DeleteView, FormView
+    CreateView, UpdateView, DeleteView, FormView, FormMixin
 )
-from django.contrib.messages.views import SuccessMessageMixin
+from django.views.generic.detail import DetailView
 from django.urls import reverse_lazy
 
 from task_manager import forms as tm_forms
@@ -40,95 +41,56 @@ class ProfileView(LoginRequiredMixin, TemplateView):
     template_name = 'task_manager/profile.html'
 
 
-#@login_required
-#def create_task(request):
-    #default_fields = {
-        #'creator': request.user,
-        #'status': TaskStatus.objects.first()
-    #}
-    #task_form = tm_forms.TaskForm(
-        #request.POST or None,
-        #initial=default_fields,
-    #)
-    #task_form.fields['creator'].disabled = True
-    #task_form.fields['status'].disabled = True
+class CreateTaskView(LoginRequiredMixin, SuccessMessageMixin, FormView):
+    template_name = 'task_manager/create_task.html'
+    success_url = reverse_lazy('tasks')
+    success_message = 'Task "%(name)s" was created successfully'
+    form_class = tm_forms.TaskForm
 
-    #tag_form = tm_forms.CreateTagsForm(request.POST or None)
-    #if request.method == 'POST':
-        #if task_form.is_valid() and tag_form.is_valid():
-            #task = task_form.save()
-            #user_inputed_tags = tag_form.cleaned_data['tags']
-            #if user_inputed_tags:
-                #tags = set()
-                #for user_inputed_tag in user_inputed_tags.split('|'):
-                    #tag, _ = Tag.objects.get_or_create(
-                        #name=user_inputed_tag.strip()
-                    #)
-                    #tags.add(tag)
-                #task.tags.add(*tags)
-                #task.save()
-            #return redirect('tasks')
-    #return render(
-        #request,
-        #'task_manager/create_task.html',
-        #context={
-            #'task_form': task_form,
-            #'tag_form': tag_form,
-        #}
-    #)
+    def get_initial(self):
+        initial = super().get_initial()
+        initial.update(
+            {
+                'creator': self.request.user,
+                'status': TaskStatus.objects.first()
+            }
+        )
+        return initial
+
+    def form_valid(self, form):
+        form.save()
+        return super().form_valid(form)
+
+    def get_form(self, **kwargs):
+        form = super().get_form(**kwargs)
+        form.fields['status'].disabled = True
+        return form
 
 
-#class CreateTaskView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
-    #model = TaskStatus
-    #template_name = 'task_manager/create_status.html'
-    #success_url = reverse_lazy('statuses')
-    #success_message = 'Status "%(name)s" was created successfully'
-    #fields = ['name']
+class TaskDetailView(LoginRequiredMixin, FormMixin, DetailView):
+    model = Task
+    form_class = tm_forms.TaskForm
+    context_object_name = 'task'
 
+    def get_success_url(self):
+        return reverse('task_details', kwargs={'pk': self.object.pk})
 
-@login_required
-def task_details(request, pk):
-    task = get_object_or_404(Task, pk=pk)
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['instance'] = self.get_object()
+        return kwargs
 
-    task_form = tm_forms.TaskForm(instance=task)
-    task_form.fields['creator'].disabled = True
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.get_form()
+        if form.is_valid():
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
 
-    tags = task.tags.all()
-    formatted = '|'.join([tag.name for tag in tags])
-    tag_form = tm_forms.CreateTagsForm(initial={'tags': formatted})
-    if request.method == 'POST':
-        task_form = tm_forms.TaskForm(request.POST, instance=task)
-        task_form.fields['creator'].disabled = True
-        tag_form = tm_forms.CreateTagsForm(request.POST)
-        if task_form.is_valid() and tag_form.is_valid():
-            task = task_form.save(commit=False)
-            user_inputed_tags = tag_form.cleaned_data['tags']
-            new_set_of_tags = set()
-            for user_inputed_tag in user_inputed_tags.split('|'):
-                new_tag_name = user_inputed_tag.strip()
-                if new_tag_name:
-                    tag, _ = Tag.objects.get_or_create(
-                        name=new_tag_name
-                    )
-                    new_set_of_tags.add(tag)
-            previous_set_of_tags = set(tags)
-            deleted_tags = previous_set_of_tags - new_set_of_tags
-            for deleted_tag in deleted_tags:
-                task.tags.remove(deleted_tag)
-                bounded_tasks = deleted_tag.task_set.all()
-                if not bounded_tasks:
-                    deleted_tag.delete()
-            task.tags.add(*new_set_of_tags)
-            task.save()
-    return render(
-        request,
-        'task_manager/task_details.html',
-        context={
-            'task_form': task_form,
-            'tag_form': tag_form,
-            'task': task,
-        }
-    )
+    def form_valid(self, form):
+        form.save()
+        return super().form_valid(form)
 
 
 class DeleteTaskView(LoginRequiredMixin, DeleteView):
@@ -178,7 +140,6 @@ class TasksView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['filter_form'] = self.filter_form
-        print(context)
         return context
 
 

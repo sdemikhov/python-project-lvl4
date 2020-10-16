@@ -1,5 +1,6 @@
 from django.forms import CharField, ModelChoiceField
 from django.core.validators import RegexValidator
+from django.core.exceptions import ValidationError
 
 from task_manager.models import Tag
 
@@ -29,7 +30,7 @@ class TagsField(CharField):
         self.required = False
         self.help_text = 'Separate each tag by "|"'
 
-        validators=[
+        validators = [
             RegexValidator(
                 NOT_PERMITED_TAG_SYMBOLS,
                 inverse_match=True
@@ -43,7 +44,6 @@ class TagsField(CharField):
         tags = []
         if tag_names:
             for name in tag_names.split('|'):
-                tag = Tag.objects.create(name=name.strip())
-                if tag not in tags:
-                    tags.add(tag)
+                tag, created = Tag.objects.get_or_create(name=name.strip())
+                tags.append(tag)
         return tags

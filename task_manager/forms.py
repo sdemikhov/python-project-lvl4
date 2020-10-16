@@ -94,17 +94,6 @@ class FilterForm(forms.Form):
         ]
 
 
-def validate_tags(value):
-    tags = value.split('|')
-    for tag in tags:
-        if len(tag) <= 2:
-            raise ValidationError(
-                'Minimum tag length is 3 chars'
-            )
-    if len(tags) > 10:
-        raise ValidationError('You can select 10 tags maximum')
-
-
 class TaskForm(forms.ModelForm):
     tags = tm_fields.TagsField()
 
@@ -128,6 +117,17 @@ class TaskForm(forms.ModelForm):
         self.fields['creator'].queryset = User.objects.filter(
             is_staff=False
         )
+        self.fields['creator'].disabled = True
+
         self.fields['assigned_to'].queryset = User.objects.filter(
             is_staff=False
         )
+
+    def save(self, commit=True):
+        task = super().save(commit=False)
+        new_tags = self.cleaned_data['tags']
+        if commit:
+            task.save()
+            task.tags.set(new_tags)
+            self.save_m2m()
+        return task

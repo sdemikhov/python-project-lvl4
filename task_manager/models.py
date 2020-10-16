@@ -32,6 +32,10 @@ class TaskStatus(models.Model):
 class Tag(models.Model):
     name = models.CharField(max_length=100, unique=True)
 
+    def delete_if_not_used(self):
+        if not self.tasks_set.all():
+            self.delete()
+
     def __str__(self):
         return self.name
 

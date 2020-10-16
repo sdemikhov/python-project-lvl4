@@ -24,7 +24,7 @@ urlpatterns = [
     path('tasks/new', views.CreateTaskView.as_view(), name='create_task'),
     path(
         'tasks/<int:pk>/details',
-        views.task_details,
+        views.TaskDetailView.as_view(),
         name='task_details'
     ),
     path(
