@@ -123,11 +123,33 @@ class TaskForm(forms.ModelForm):
             is_staff=False
         )
 
+        if kwargs.get('instance'):
+            self.initial['tags'] = '|'.join(
+                tag.name for tag in self.instance.tags.all()
+            )
+
     def save(self, commit=True):
         task = super().save(commit=False)
-        new_tags = self.cleaned_data['tags']
         if commit:
             task.save()
-            task.tags.set(new_tags)
-            self.save_m2m()
+            #self.save_m2m()
         return task
+
+    #def save_m2m(self):
+        #pass
+        #task = self.instance
+        #previous_tags = task.tags.all()
+        #tag_names = self.cleaned_data['tags']
+        #new_tags = []
+        #if tag_names:
+            #for name in tag_names:
+                #tag, _ = Tag.objects.get_or_create(name=name)
+                #new_tags.append(tag)
+        ##for previous_tag in previous_tags:
+            ##check = previous_tag not in new_tags
+            ##if previous_tag not in new_tags:
+                ##previous_tag.delete_if_not_used()
+        #task.tags.set(new_tags)
+        #print(f'prev_tags {previous_tags}')
+        #setted_tags = task.tags.all()
+        #print(f'setted_tags {setted_tags}')

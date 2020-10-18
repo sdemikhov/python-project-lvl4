@@ -33,7 +33,10 @@ class Tag(models.Model):
     name = models.CharField(max_length=100, unique=True)
 
     def delete_if_not_used(self):
-        if not self.tasks_set.all():
+        bounded_tasks = self.task_set.all()
+        print(f'$$$$$$$$$$$$$$$$ {bounded_tasks}')
+        if not bounded_tasks:
+            print(f'!!!!!!!!!!delete {self}')
             self.delete()
 
     def __str__(self):

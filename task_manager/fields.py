@@ -41,9 +41,5 @@ class TagsField(CharField):
 
     def clean(self, value):
         tag_names = super().clean(value)
-        tags = []
-        if tag_names:
-            for name in tag_names.split('|'):
-                tag, created = Tag.objects.get_or_create(name=name.strip())
-                tags.append(tag)
+        tags = [tag.strip().lower() for tag in tag_names.split('|')]
         return tags

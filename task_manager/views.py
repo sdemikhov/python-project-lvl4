@@ -73,7 +73,7 @@ class TaskDetailView(LoginRequiredMixin, FormMixin, DetailView):
     context_object_name = 'task'
 
     def get_success_url(self):
-        return reverse('task_details', kwargs={'pk': self.object.pk})
+        return reverse_lazy('task_details', kwargs={'pk': self.object.pk})
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
