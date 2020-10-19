@@ -2,8 +2,6 @@ from django.forms import CharField, ModelChoiceField
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 
-from task_manager.models import Tag
-
 NOT_PERMITED_TAG_SYMBOLS = r'[^0-9a-zA-Zа-яА-Я _|]'
 
 

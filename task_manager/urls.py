@@ -19,7 +19,7 @@ from django.contrib import admin
 from task_manager import views
 
 urlpatterns = [
-    path('', views.index, name='index'),
+    path('', views.IndexView.as_view(), name='index'),
     path('tasks/', views.TasksView.as_view(), name='tasks'),
     path('tasks/new', views.CreateTaskView.as_view(), name='create_task'),
     path(

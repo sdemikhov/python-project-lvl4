@@ -7,7 +7,7 @@ from task_manager.models import TaskStatus, Tag, Task
 from task_manager import fields as tm_fields
 
 ONLY_LETTERS = r'^[a-zA-Zа-яА-Я]+$'
-
+BLANK_CHOICE = [('', '-----')]
 
 class CustomRegistrationForm(RegistrationForm):
     first_name = forms.CharField(
@@ -76,15 +76,15 @@ class FilterForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['status'].choices = [(None, '-----')] + [
+        self.fields['status'].choices = BLANK_CHOICE + [
             (row.pk, getattr(row, 'name'))
             for row in TaskStatus.objects.all()
         ]
-        self.fields['creator'].choices = [(None, '-----')] + [
+        self.fields['creator'].choices = BLANK_CHOICE + [
             (user.pk, user.get_full_name())
             for user in User.objects.filter(is_staff=False)
         ]
-        self.fields['assigned_to'].choices = [(None, '-----')] + [
+        self.fields['assigned_to'].choices = BLANK_CHOICE + [
             (user.pk, user.get_full_name())
             for user in User.objects.filter(is_staff=False)
         ]
@@ -132,24 +132,15 @@ class TaskForm(forms.ModelForm):
         task = super().save(commit=False)
         if commit:
             task.save()
-            #self.save_m2m()
+            previous_tags = [tag for tag in task.tags.all()]
+            tag_names = self.cleaned_data['tags']
+            new_tags = []
+            if tag_names:
+                for name in tag_names:
+                    tag, _ = Tag.objects.get_or_create(name=name)
+                    new_tags.append(tag)
+            task.tags.set(new_tags)
+            for previous_tag in previous_tags:
+                if previous_tag not in new_tags:
+                    previous_tag.delete_if_not_used()
         return task
-
-    #def save_m2m(self):
-        #pass
-        #task = self.instance
-        #previous_tags = task.tags.all()
-        #tag_names = self.cleaned_data['tags']
-        #new_tags = []
-        #if tag_names:
-            #for name in tag_names:
-                #tag, _ = Tag.objects.get_or_create(name=name)
-                #new_tags.append(tag)
-        ##for previous_tag in previous_tags:
-            ##check = previous_tag not in new_tags
-            ##if previous_tag not in new_tags:
-                ##previous_tag.delete_if_not_used()
-        #task.tags.set(new_tags)
-        #print(f'prev_tags {previous_tags}')
-        #setted_tags = task.tags.all()
-        #print(f'setted_tags {setted_tags}')

@@ -1,5 +1,4 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django_registration.backends.one_step.views import RegistrationView
 from django.contrib import messages
@@ -13,28 +12,22 @@ from django.views.generic.detail import DetailView
 from django.urls import reverse_lazy
 
 from task_manager import forms as tm_forms
-from task_manager.models import TaskStatus, Tag, Task
+from task_manager.models import TaskStatus, Task
 
 
 class CustomRegistrationView(RegistrationView):
     form_class = tm_forms.CustomRegistrationForm
 
 
-def index(request):
-    created_tasks_count = len(
-        Task.objects.filter(creator=request.user.pk)
-    )
-    assigned_tasks_count = len(
-        Task.objects.filter(assigned_to=request.user.pk)
-    )
-    return render(
-        request,
-        'task_manager/index.html',
-        {
-            'created_tasks_count': created_tasks_count,
-            'assigned_tasks_count': assigned_tasks_count,
-        }
-    )
+class IndexView(LoginRequiredMixin, ListView):
+    model = Task
+    template_name = 'task_manager/index.html'
+    context_object_name = 'tasks'
+
+    def get_queryset(self):
+        return Task.objects.filter(
+            assigned_to=self.request.user.pk
+        ).order_by('pk')
 
 
 class ProfileView(LoginRequiredMixin, TemplateView):

@@ -10,7 +10,27 @@
     <div class="container">
         <h3>Task-Manager</h3>
         {% if user.is_authenticated %}
-            Tasks assigned to me: <a href="{% url "tasks" %}?filter_=my_tasks">{{ created_tasks_count }}</a>
+            {% if tasks %}
+                <p3>Tasks assigned to me:</p3>
+                <div class="list-group col-sm-5">
+                    {% for task in tasks %}
+                        <a href="{% url 'task_details' task.pk %}" class="list-group-item list-group-item-action flex-column align-items-start">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">#{{ task.pk }} {{ task.name }}</h5>
+                                <small class="text-muted">{{ task.creator.get_full_name }}</small>
+                            </div>
+                            <p class="mb-1">{{ task.description|truncatechars:200 }}</p>
+                            <small class="text-muted">
+                                {% for tag in task.tags.all %}
+                                    <div class="badge">{{ tag.name }}</div>
+                                {% endfor %}
+                            </small>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>You have no tasks yet.</p>
+            {% endif %}
         {% else %}
             <p>"This is the online demo of Task-Manager project."</p>
             <p>Register for an account and test its features:</p>
