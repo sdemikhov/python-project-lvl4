@@ -124,17 +124,21 @@ class TaskFormTest(TestCase):
             username='asidorov',
             is_staff=True
         )
+        cls.status = tm_models.TaskStatus.objects.create(name='new_test')
         cls.task = tm_models.Task.objects.create(
             name='task_test',
             description='desc',
             creator=cls.ivanov,
             assigned_to=cls.petrov,
-            status=tm_models.TaskStatus.objects.create(name='new_test'),
+            status=cls.status,
         )
+        cls.tag_task = tm_models.Tag.objects.create(name='task')
+        cls.tag_test = tm_models.Tag.objects.create(name='test')
+
         cls.task.tags.set(
             [
-                tm_models.Tag.objects.create(name='task'),
-                tm_models.Tag.objects.create(name='test')
+                cls.tag_task,
+                cls.tag_test
             ]
         )
 
@@ -246,19 +250,13 @@ class TaskFormTest(TestCase):
                 tm_fields.validate_tags
         )
 
-    def test_field_tags_validators_validate_tags(self):
-        form = tm_forms.TaskForm()
-        self.assertEquals(
-                form.fields['tags'].validators[2],
-                tm_fields.validate_tags
-        )
-
     def test_field_tags_instance_as_initial(self):
         form = tm_forms.TaskForm(instance=self.task)
         self.assertEquals(
                 form.initial['tags'],
                 'task|test'
         )
+
 
 class ValidateTagsTest(TestCase):
     def test_min_tag_length(self):
@@ -286,3 +284,7 @@ class ValidateTagsTest(TestCase):
             ),
             None
         )
+
+
+class FilterFormTest(TestCase):
+    pass

@@ -12,7 +12,7 @@
         {% if user.is_authenticated %}
             {% if tasks %}
                 <p3>Tasks assigned to me:</p3>
-                <div class="list-group col-sm-5">
+                <div class="list-group col-sm-6">
                     {% for task in tasks %}
                         <a href="{% url 'task_details' task.pk %}" class="list-group-item list-group-item-action flex-column align-items-start">
                             <div class="d-flex w-100 justify-content-between">

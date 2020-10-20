@@ -9,6 +9,7 @@ from task_manager import fields as tm_fields
 ONLY_LETTERS = r'^[a-zA-Zа-яА-Я]+$'
 BLANK_CHOICE = [('', '-----')]
 
+
 class CustomRegistrationForm(RegistrationForm):
     first_name = forms.CharField(
         label='First name',
