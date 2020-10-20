@@ -44,5 +44,3 @@ prepare: migrate collectstatic initadmin initstatuses
 .PHONY: heroku_release
 heroku_release:
 	python manage.py migrate
-	python manage.py initadmin
-	python manage.py initstatuses

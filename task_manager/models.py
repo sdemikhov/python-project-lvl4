@@ -2,25 +2,10 @@ from django.db import models
 from django.contrib.auth.models import User
 
 DEFAULT_TASK_STATUS_ID = 1
-DEFAULT_TASK_STATUSES = [
-    'New',
-    'In progress',
-    'Testing',
-    'Done'
-]
 
 
 class TaskStatus(models.Model):
     name = models.CharField(max_length=100, unique=True)
-
-    @classmethod
-    def init_statuses(cls):
-        for status in DEFAULT_TASK_STATUSES:
-            try:
-                cls.objects.get(name=status)
-            except cls.DoesNotExist:
-                new_status = cls(name=status)
-                new_status.save()
 
     def __str__(self):
         return self.name
@@ -31,6 +16,11 @@ class TaskStatus(models.Model):
 
 class Tag(models.Model):
     name = models.CharField(max_length=100, unique=True)
+
+    def delete_if_not_used(self):
+        bounded_tasks = self.task_set.all()
+        if not bounded_tasks:
+            self.delete()
 
     def __str__(self):
         return self.name

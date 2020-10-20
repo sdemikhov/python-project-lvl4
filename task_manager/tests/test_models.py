@@ -29,15 +29,6 @@ class TaskStatusModelTest(TestCase):
         with self.assertRaises(IntegrityError):
             tm_models.TaskStatus.objects.create(name='unique')
 
-    def test_init_statuses(self):
-        tm_models.TaskStatus.init_statuses()
-
-        for default_status in tm_models.DEFAULT_TASK_STATUSES:
-            status = tm_models.TaskStatus.objects.get(
-                name=default_status
-            )
-            self.assertEquals(status.name, default_status)
-
     def test__str__(self):
         status = tm_models.TaskStatus.objects.get(
             name='task_status_model_test'

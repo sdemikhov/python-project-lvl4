@@ -19,22 +19,22 @@ from django.contrib import admin
 from task_manager import views
 
 urlpatterns = [
-    path('', views.index, name='index'),
-    path('tasks/search', views.tasks, name='tasks'),
-    path('tasks/create', views.create_task, name='create_task'),
+    path('', views.IndexView.as_view(), name='index'),
+    path('tasks/', views.TasksView.as_view(), name='tasks'),
+    path('tasks/new', views.CreateTaskView.as_view(), name='create_task'),
     path(
-        'tasks/details/<int:task_id>',
-        views.task_details,
+        'tasks/<int:pk>/details',
+        views.TaskDetailView.as_view(),
         name='task_details'
     ),
     path(
-        'tasks/delete/<int:task_id>',
-        views.delete_task,
+        'tasks/<int:pk>/delete',
+        views.DeleteTaskView.as_view(),
         name='delete_task'
     ),
     path('statuses/', views.StatusesView.as_view(), name='statuses'),
     path(
-        'statuses/create',
+        'statuses/new',
         views.CreateStatusView.as_view(),
         name='create_status'
     ),
@@ -48,7 +48,7 @@ urlpatterns = [
         views.DeleteStatusView.as_view(),
         name='delete_status'
     ),
-    path('accounts/profile/', views.profile, name='profile'),
+    path('accounts/profile/', views.ProfileView.as_view(), name='profile'),
     path(
         'accounts/register/',
         views.CustomRegistrationView.as_view(),

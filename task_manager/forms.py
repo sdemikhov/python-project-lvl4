@@ -1,26 +1,13 @@
 from django_registration.forms import RegistrationForm
 from django import forms
 from django.core import validators
-from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 
 from task_manager.models import TaskStatus, Tag, Task
 from task_manager import fields as tm_fields
 
 ONLY_LETTERS = r'^[a-zA-Zа-яА-Я]+$'
-
-MY_TASKS = 'my_tasks'
-TAGS = 'tags'
-STATUS = 'status'
-ASSIGNED_TO = 'assigned_to'
-
-FILTERS = (
-    (MY_TASKS, 'My tasks'),
-    (TAGS, 'Tags'),
-    (STATUS, 'Status'),
-    (ASSIGNED_TO, 'Assigned to'),
-)
-NOT_PERMITED_TAG_SYMBOLS = r'[^0-9a-zA-Zа-яА-Я _|]'
+BLANK_CHOICE = [('', '-----')]
 
 
 class CustomRegistrationForm(RegistrationForm):
@@ -62,63 +49,55 @@ class CustomRegistrationForm(RegistrationForm):
         return user
 
 
-class FilterTypeForm(forms.Form):
-    filter_ = forms.ChoiceField(
-        label='Filter',
-        choices=FILTERS
+class FilterForm(forms.Form):
+    my_tasks = forms.BooleanField(
+        label='My tasks',
+        required=False,
     )
-
-
-class FilterByMyTasksForm(forms.Form):
-    filter_type = MY_TASKS
-
-
-class FilterByTagsForm(forms.Form):
-    filter_type = TAGS
-    tags = forms.MultipleChoiceField(
-        label='Select tags',
+    status = forms.TypedChoiceField(
+        coerce=int,
+        label='Status',
+        required=False,
+    )
+    creator = forms.TypedChoiceField(
+        coerce=int,
+        label='Creator',
+        required=False,
+    )
+    assigned_to = forms.TypedChoiceField(
+        coerce=int,
+        label='Assigned to',
+        required=False,
+    )
+    tags__in = forms.MultipleChoiceField(
+        label='Tags',
         widget=forms.CheckboxSelectMultiple,
+        required=False,
     )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['tags'].choices = [
+        self.fields['status'].choices = BLANK_CHOICE + [
+            (row.pk, getattr(row, 'name'))
+            for row in TaskStatus.objects.all()
+        ]
+        self.fields['creator'].choices = BLANK_CHOICE + [
+            (user.pk, user.get_full_name())
+            for user in User.objects.filter(is_staff=False)
+        ]
+        self.fields['assigned_to'].choices = BLANK_CHOICE + [
+            (user.pk, user.get_full_name())
+            for user in User.objects.filter(is_staff=False)
+        ]
+        self.fields['tags__in'].choices = [
             (row.pk, getattr(row, 'name'))
             for row in Tag.objects.order_by('name').all()
         ]
 
 
-class FilterByStatusForm(forms.Form):
-    filter_type = STATUS
-    status = forms.TypedChoiceField(
-        coerce=int,
-        label='Select status',
-    )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['status'].choices = [
-            (row.pk, getattr(row, 'name'))
-            for row in TaskStatus.objects.all()
-        ]
-
-
-class FilterByAssignedToForm(forms.Form):
-    filter_type = ASSIGNED_TO
-    assigned_to = forms.TypedChoiceField(
-        coerce=int,
-        label='Select person',
-    )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['assigned_to'].choices = [
-            (user.pk, user.get_full_name())
-            for user in User.objects.filter(is_staff=False)
-        ]
-
-
 class TaskForm(forms.ModelForm):
+    tags = tm_fields.TagsField()
+
     class Meta:
         model = Task
         fields = (
@@ -127,10 +106,11 @@ class TaskForm(forms.ModelForm):
             'status',
             'creator',
             'assigned_to',
+            'tags',
         )
         field_classes = {
             'creator': tm_fields.UserModelChoiceField,
-            'assigned_to': tm_fields.UserModelChoiceField
+            'assigned_to': tm_fields.UserModelChoiceField,
         }
 
     def __init__(self, *args, **kwargs):
@@ -138,33 +118,30 @@ class TaskForm(forms.ModelForm):
         self.fields['creator'].queryset = User.objects.filter(
             is_staff=False
         )
+        self.fields['creator'].disabled = True
+
         self.fields['assigned_to'].queryset = User.objects.filter(
             is_staff=False
         )
 
-
-def validate_tags(value):
-    tags = value.split('|')
-    for tag in tags:
-        if len(tag) <= 2:
-            raise ValidationError(
-                'Minimum tag length is 3 chars'
+        if kwargs.get('instance'):
+            self.initial['tags'] = '|'.join(
+                tag.name for tag in self.instance.tags.all()
             )
-    if len(tags) > 10:
-        raise ValidationError('You can select 10 tags maximum')
 
-
-class CreateTagsForm(forms.Form):
-    tags = forms.CharField(
-        help_text=(
-            'Separate each tag by "|"'
-        ),
-        validators=[
-            validators.RegexValidator(
-                NOT_PERMITED_TAG_SYMBOLS,
-                inverse_match=True
-            ),
-            validate_tags
-        ],
-        required=False
-    )
+    def save(self, commit=True):
+        task = super().save(commit=False)
+        if commit:
+            task.save()
+            previous_tags = [tag for tag in task.tags.all()]
+            tag_names = self.cleaned_data['tags']
+            new_tags = []
+            if tag_names:
+                for name in tag_names:
+                    tag, _ = Tag.objects.get_or_create(name=name)
+                    new_tags.append(tag)
+            task.tags.set(new_tags)
+            for previous_tag in previous_tags:
+                if previous_tag not in new_tags:
+                    previous_tag.delete_if_not_used()
+        return task

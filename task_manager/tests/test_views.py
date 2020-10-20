@@ -33,13 +33,13 @@ class IndexViewTest(TestCase):
         status = tm_models.TaskStatus.objects.create(
             name='task_status_model_test'
         )
-        tm_models.Task.objects.create(
+        self.task_one = tm_models.Task.objects.create(
             name='creator_ivanov_aasigned_to_petrov',
             status=status,
             creator=ivanov,
             assigned_to=petrov,
         )
-        tm_models.Task.objects.create(
+        self.task_two = tm_models.Task.objects.create(
             name='creator_petrov_aasigned_to_ivanov',
             status=status,
             creator=petrov,
@@ -48,11 +48,7 @@ class IndexViewTest(TestCase):
 
     def test_view_url_accessible_by_name(self):
         response = self.client.get(reverse('index'))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(
-            response,
-            'task_manager/index.html'
-        )
+        self.assertEqual(response.status_code, 302)
 
     def test_logged_in_uses_correct_template(self):
         login = self.client.login(
@@ -62,9 +58,15 @@ class IndexViewTest(TestCase):
         self.assertTrue(login)
         response = self.client.get(reverse('index'))
         self.assertEqual(response.status_code, 200)
-        self.assertTrue(
-            response.context.get('assigned_tasks_count'),
-            1
+        self.assertTemplateUsed(
+            response,
+            'task_manager/index.html'
+        )
+        self.assertEquals(
+            list(response.context['tasks']),
+            [
+                self.task_two
+            ]
         )
 
 
@@ -157,14 +159,8 @@ class CreateTaskViewTest(TestCase):
         response = self.client.get(reverse('create_task'))
         self.assertTrue(
             isinstance(
-                response.context['task_form'],
+                response.context['form'],
                 tm_forms.TaskForm
-            )
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['tag_form'],
-                tm_forms.CreateTagsForm
             )
         )
 
@@ -176,18 +172,18 @@ class CreateTaskViewTest(TestCase):
         self.assertTrue(login)
         response = self.client.get(reverse('create_task'))
         self.assertEquals(
-            response.context['task_form'].initial['creator'],
+            response.context['form'].initial['creator'],
             self.alex
         )
         self.assertTrue(
-            response.context['task_form'].fields['creator'].disabled
+            response.context['form'].fields['creator'].disabled
         )
         self.assertEquals(
-            response.context['task_form'].initial['status'],
+            response.context['form'].initial['status'],
             self.status_new
         )
         self.assertTrue(
-            response.context['task_form'].fields['status'].disabled,
+            response.context['form'].fields['status'].disabled,
             self.status_new
         )
 
@@ -304,7 +300,7 @@ class TaskDetailsViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(
             response,
-            'task_manager/task_details.html'
+            'task_manager/task_detail.html'
         )
 
     def test_logged_in_get_invalid_task_id(self):
@@ -347,25 +343,19 @@ class TaskDetailsViewTest(TestCase):
         )
         self.assertTrue(
             isinstance(
-                response.context['task_form'],
+                response.context['form'],
                 tm_forms.TaskForm
             )
         )
         self.assertEquals(
-            response.context['task_form'].instance,
+            response.context['form'].instance,
             self.task
         )
         self.assertTrue(
-            response.context['task_form'].fields['creator'].disabled
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['tag_form'],
-                tm_forms.CreateTagsForm
-            )
+            response.context['form'].fields['creator'].disabled
         )
         self.assertEquals(
-            response.context['tag_form'].initial['tags'],
+            response.context['form'].initial['tags'],
             '|'.join([tag.name for tag in self.task.tags.all()])
         )
         self.assertEquals(
@@ -387,7 +377,8 @@ class TaskDetailsViewTest(TestCase):
                 'status': [self.status_done.pk],
                 'assigned_to': [self.andrew.pk],
                 'tags': ['testing_task_details|fresh_new_tag']
-            }
+            },
+            follow=True
         )
         self.assertEqual(response.status_code, 200)
 
@@ -434,26 +425,16 @@ class TaskDetailsViewTest(TestCase):
         )
         self.assertTrue(
             isinstance(
-                response.context['task_form'],
+                response.context['form'],
                 tm_forms.TaskForm
             )
         )
         self.assertEquals(
-            response.context['task_form'].instance,
+            response.context['form'].instance,
             updated_task
         )
         self.assertTrue(
-            response.context['task_form'].fields['creator'].disabled
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['tag_form'],
-                tm_forms.CreateTagsForm
-            )
-        )
-        self.assertEquals(
-            response.context['tag_form']['tags'].data,
-            '|'.join([tag.name for tag in updated_task.tags.all()])
+            response.context['form'].fields['creator'].disabled
         )
 
 
@@ -677,36 +658,20 @@ class TasksViewTest(TestCase):
         response = self.client.get(reverse('tasks'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'task_manager/tasks.html')
-        self.assertEquals(response.context['tasks'], [])
+        self.assertEquals(
+            list(response.context['tasks']),
+            [
+                self.task_first,
+                self.task_second,
+                self.task_third,
+                self.task_fourth
+            ]
+        )
 
         self.assertTrue(
             isinstance(
-                response.context['filter_type_form'],
-                tm_forms.FilterTypeForm
-            )
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_my_tasks'],
-                tm_forms.FilterByMyTasksForm
-            )
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_tags_form'],
-                tm_forms.FilterByTagsForm
-            )
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_status_form'],
-                tm_forms.FilterByStatusForm
-            )
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_assigned_to_form'],
-                tm_forms.FilterByAssignedToForm
+                response.context['filter_form'],
+                tm_forms.FilterForm
             )
         )
 
@@ -718,7 +683,7 @@ class TasksViewTest(TestCase):
         self.assertTrue(login)
         response = self.client.get(
             reverse('tasks'),
-            {'filter_': 'my_tasks'}
+            {'my_tasks': 'on'}
         )
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'task_manager/tasks.html')
@@ -729,36 +694,8 @@ class TasksViewTest(TestCase):
 
         self.assertTrue(
             isinstance(
-                response.context['filter_type_form'],
-                tm_forms.FilterTypeForm
-            )
-        )
-        self.assertEquals(
-            response.context['filter_type_form']['filter_'].data,
-            'my_tasks'
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_my_tasks'],
-                tm_forms.FilterByMyTasksForm
-            )
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_tags_form'],
-                tm_forms.FilterByTagsForm
-            )
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_status_form'],
-                tm_forms.FilterByStatusForm
-            )
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_assigned_to_form'],
-                tm_forms.FilterByAssignedToForm
+                response.context['filter_form'],
+                tm_forms.FilterForm
             )
         )
 
@@ -771,8 +708,7 @@ class TasksViewTest(TestCase):
         response = self.client.get(
             reverse('tasks'),
             {
-                'filter_': 'tags',
-                'tags': self.tag_one.pk
+                'tags__in': self.tag_one.pk
             }
         )
         self.assertEqual(response.status_code, 200)
@@ -784,41 +720,13 @@ class TasksViewTest(TestCase):
 
         self.assertTrue(
             isinstance(
-                response.context['filter_type_form'],
-                tm_forms.FilterTypeForm
+                response.context['filter_form'],
+                tm_forms.FilterForm
             )
         )
         self.assertEquals(
-            response.context['filter_type_form']['filter_'].data,
-            'tags'
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_my_tasks'],
-                tm_forms.FilterByMyTasksForm
-            )
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_tags_form'],
-                tm_forms.FilterByTagsForm
-            )
-        )
-        self.assertEquals(
-            response.context['filter_by_tags_form']['tags'].data[0],
+            response.context['filter_form']['tags__in'].data[0],
             str(self.tag_one.pk)
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_status_form'],
-                tm_forms.FilterByStatusForm
-            )
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_assigned_to_form'],
-                tm_forms.FilterByAssignedToForm
-            )
         )
 
     def test_logged_in_uses_filter_by_tag_two(self):
@@ -830,8 +738,7 @@ class TasksViewTest(TestCase):
         response = self.client.get(
             reverse('tasks'),
             {
-                'filter_': 'tags',
-                'tags': self.tag_two.pk
+                'tags__in': self.tag_two.pk
             }
         )
         self.assertEqual(response.status_code, 200)
@@ -843,41 +750,14 @@ class TasksViewTest(TestCase):
 
         self.assertTrue(
             isinstance(
-                response.context['filter_type_form'],
-                tm_forms.FilterTypeForm
+                response.context['filter_form'],
+                tm_forms.FilterForm
             )
         )
+
         self.assertEquals(
-            response.context['filter_type_form']['filter_'].data,
-            'tags'
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_my_tasks'],
-                tm_forms.FilterByMyTasksForm
-            )
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_tags_form'],
-                tm_forms.FilterByTagsForm
-            )
-        )
-        self.assertEquals(
-            response.context['filter_by_tags_form']['tags'].data[0],
+            response.context['filter_form']['tags__in'].data[0],
             str(self.tag_two.pk)
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_status_form'],
-                tm_forms.FilterByStatusForm
-            )
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_assigned_to_form'],
-                tm_forms.FilterByAssignedToForm
-            )
         )
 
     def test_logged_in_uses_filter_by_tag_one_and_tag_two(self):
@@ -889,8 +769,7 @@ class TasksViewTest(TestCase):
         response = self.client.get(
             reverse('tasks'),
             {
-                'filter_': 'tags',
-                'tags': (self.tag_one.pk, self.tag_two.pk)
+                'tags__in': (self.tag_one.pk, self.tag_two.pk)
             }
         )
         self.assertEqual(response.status_code, 200)
@@ -902,41 +781,13 @@ class TasksViewTest(TestCase):
 
         self.assertTrue(
             isinstance(
-                response.context['filter_type_form'],
-                tm_forms.FilterTypeForm
+                response.context['filter_form'],
+                tm_forms.FilterForm
             )
         )
         self.assertEquals(
-            response.context['filter_type_form']['filter_'].data,
-            'tags'
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_my_tasks'],
-                tm_forms.FilterByMyTasksForm
-            )
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_tags_form'],
-                tm_forms.FilterByTagsForm
-            )
-        )
-        self.assertEquals(
-            response.context['filter_by_tags_form']['tags'].data,
+            response.context['filter_form']['tags__in'].data,
             [str(self.tag_one.pk), str(self.tag_two.pk)]
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_status_form'],
-                tm_forms.FilterByStatusForm
-            )
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_assigned_to_form'],
-                tm_forms.FilterByAssignedToForm
-            )
         )
 
     def test_logged_in_uses_filter_by_tag_three(self):
@@ -948,8 +799,7 @@ class TasksViewTest(TestCase):
         response = self.client.get(
             reverse('tasks'),
             {
-                'filter_': 'tags',
-                'tags': self.tag_three.pk
+                'tags__in': self.tag_three.pk
             }
         )
         self.assertEqual(response.status_code, 200)
@@ -961,41 +811,13 @@ class TasksViewTest(TestCase):
 
         self.assertTrue(
             isinstance(
-                response.context['filter_type_form'],
-                tm_forms.FilterTypeForm
+                response.context['filter_form'],
+                tm_forms.FilterForm
             )
         )
         self.assertEquals(
-            response.context['filter_type_form']['filter_'].data,
-            'tags'
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_my_tasks'],
-                tm_forms.FilterByMyTasksForm
-            )
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_tags_form'],
-                tm_forms.FilterByTagsForm
-            )
-        )
-        self.assertEquals(
-            response.context['filter_by_tags_form']['tags'].data[0],
+            response.context['filter_form']['tags__in'].data[0],
             str(self.tag_three.pk)
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_status_form'],
-                tm_forms.FilterByStatusForm
-            )
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_assigned_to_form'],
-                tm_forms.FilterByAssignedToForm
-            )
         )
 
     def test_logged_in_uses_filter_by_status_new(self):
@@ -1007,7 +829,6 @@ class TasksViewTest(TestCase):
         response = self.client.get(
             reverse('tasks'),
             {
-                'filter_': 'status',
                 'status': self.status_new.pk,
             }
         )
@@ -1020,41 +841,13 @@ class TasksViewTest(TestCase):
 
         self.assertTrue(
             isinstance(
-                response.context['filter_type_form'],
-                tm_forms.FilterTypeForm
+                response.context['filter_form'],
+                tm_forms.FilterForm
             )
         )
         self.assertEquals(
-            response.context['filter_type_form']['filter_'].data,
-            'status'
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_my_tasks'],
-                tm_forms.FilterByMyTasksForm
-            )
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_tags_form'],
-                tm_forms.FilterByTagsForm
-            )
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_status_form'],
-                tm_forms.FilterByStatusForm
-            )
-        )
-        self.assertEquals(
-            response.context['filter_by_status_form']['status'].data,
+            response.context['filter_form']['status'].data,
             str(self.status_new.pk)
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_assigned_to_form'],
-                tm_forms.FilterByAssignedToForm
-            )
         )
 
     def test_logged_in_uses_filter_by_status_done(self):
@@ -1066,7 +859,6 @@ class TasksViewTest(TestCase):
         response = self.client.get(
             reverse('tasks'),
             {
-                'filter_': 'status',
                 'status': self.status_done.pk,
             }
         )
@@ -1079,41 +871,13 @@ class TasksViewTest(TestCase):
 
         self.assertTrue(
             isinstance(
-                response.context['filter_type_form'],
-                tm_forms.FilterTypeForm
+                response.context['filter_form'],
+                tm_forms.FilterForm
             )
         )
         self.assertEquals(
-            response.context['filter_type_form']['filter_'].data,
-            'status'
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_my_tasks'],
-                tm_forms.FilterByMyTasksForm
-            )
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_tags_form'],
-                tm_forms.FilterByTagsForm
-            )
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_status_form'],
-                tm_forms.FilterByStatusForm
-            )
-        )
-        self.assertEquals(
-            response.context['filter_by_status_form']['status'].data,
+            response.context['filter_form']['status'].data,
             str(self.status_done.pk)
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_assigned_to_form'],
-                tm_forms.FilterByAssignedToForm
-            )
         )
 
     def test_logged_in_uses_filter_by_status_testing(self):
@@ -1125,7 +889,6 @@ class TasksViewTest(TestCase):
         response = self.client.get(
             reverse('tasks'),
             {
-                'filter_': 'status',
                 'status': self.status_testing.pk,
             }
         )
@@ -1138,41 +901,13 @@ class TasksViewTest(TestCase):
 
         self.assertTrue(
             isinstance(
-                response.context['filter_type_form'],
-                tm_forms.FilterTypeForm
+                response.context['filter_form'],
+                tm_forms.FilterForm
             )
         )
         self.assertEquals(
-            response.context['filter_type_form']['filter_'].data,
-            'status'
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_my_tasks'],
-                tm_forms.FilterByMyTasksForm
-            )
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_tags_form'],
-                tm_forms.FilterByTagsForm
-            )
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_status_form'],
-                tm_forms.FilterByStatusForm
-            )
-        )
-        self.assertEquals(
-            response.context['filter_by_status_form']['status'].data,
+            response.context['filter_form']['status'].data,
             str(self.status_testing.pk)
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_assigned_to_form'],
-                tm_forms.FilterByAssignedToForm
-            )
         )
 
     def test_logged_in_uses_filter_by_assigned_to_oleg(self):
@@ -1184,7 +919,6 @@ class TasksViewTest(TestCase):
         response = self.client.get(
             reverse('tasks'),
             {
-                'filter_': 'assigned_to',
                 'assigned_to': self.oleg.pk,
             }
         )
@@ -1197,42 +931,12 @@ class TasksViewTest(TestCase):
 
         self.assertTrue(
             isinstance(
-                response.context['filter_type_form'],
-                tm_forms.FilterTypeForm
+                response.context['filter_form'],
+                tm_forms.FilterForm
             )
         )
         self.assertEquals(
-            response.context['filter_type_form']['filter_'].data,
-            'assigned_to'
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_my_tasks'],
-                tm_forms.FilterByMyTasksForm
-            )
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_tags_form'],
-                tm_forms.FilterByTagsForm
-            )
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_status_form'],
-                tm_forms.FilterByStatusForm
-            )
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_assigned_to_form'],
-                tm_forms.FilterByAssignedToForm
-            )
-        )
-        self.assertEquals(
-            response.context['filter_by_assigned_to_form'][
-                'assigned_to'
-            ].data,
+            response.context['filter_form']['assigned_to'].data,
             str(self.oleg.pk)
         )
 
@@ -1245,7 +949,6 @@ class TasksViewTest(TestCase):
         response = self.client.get(
             reverse('tasks'),
             {
-                'filter_': 'assigned_to',
                 'assigned_to': self.tatyana.pk,
             }
         )
@@ -1258,42 +961,12 @@ class TasksViewTest(TestCase):
 
         self.assertTrue(
             isinstance(
-                response.context['filter_type_form'],
-                tm_forms.FilterTypeForm
+                response.context['filter_form'],
+                tm_forms.FilterForm
             )
         )
         self.assertEquals(
-            response.context['filter_type_form']['filter_'].data,
-            'assigned_to'
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_my_tasks'],
-                tm_forms.FilterByMyTasksForm
-            )
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_tags_form'],
-                tm_forms.FilterByTagsForm
-            )
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_status_form'],
-                tm_forms.FilterByStatusForm
-            )
-        )
-        self.assertTrue(
-            isinstance(
-                response.context['filter_by_assigned_to_form'],
-                tm_forms.FilterByAssignedToForm
-            )
-        )
-        self.assertEquals(
-            response.context['filter_by_assigned_to_form'][
-                'assigned_to'
-            ].data,
+            response.context['filter_form']['assigned_to'].data,
             str(self.tatyana.pk)
         )
 

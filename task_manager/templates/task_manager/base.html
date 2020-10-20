@@ -18,18 +18,12 @@
     {% with request.resolver_match.url_name as url_name %}
         <header class="mb-5">
             <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+                <a href="{% url 'index' %}" class="navbar-brand nav-link {% if url_name == 'index' %}active{% endif %}">Task-Manager</a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="navbar-nav mr-auto">
-                        <li class="nav-item">
-                            <div class="navbar-brand" >Task-Manager</div>
-                        </li>
-                        <li class="nav-item">
-                            {% url 'index' as home_url %}
-                            <a href="{% url 'index' %}" class="nav-link {% if url_name == 'index' %}active{% endif %}">Home</a>
-                        </li>
                         {% if user.is_authenticated %}
                             <li><a href="{% url 'create_task' %}" class="nav-link {% if url_name == 'create_task' %}active{% endif %}">New task</a></li>
                             <li><a href="{% url 'tasks' %}" class="nav-link {% if url_name == 'tasks' %}active{% endif %}">Tasks</a></li>
