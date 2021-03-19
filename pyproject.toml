@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "sdemikhov_task_manager"
-version = "0.2.0"
+version = "0.3.0"
 description = ""
 authors = ["Sergey Demikhov <demikhov.sergey@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.7"
-django = "^3.0.8"
+django = "^3.1.1"
 rollbar = "^0.15.0"
 python-dotenv = "^0.14.0"
 psycopg2 = "^2.8.5"
